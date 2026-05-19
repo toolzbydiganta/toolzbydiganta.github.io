@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Toolz by Diganta</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #f5a623;
+    --primary-light: #ffd280;
+    --primary-dark: #d4880a;
+    --primary-glow: rgba(245,166,35,0.15);
+    --primary-soft: #fff8ec;
+    --white: #ffffff;
+    --bg: #fffdf7;
+    --border: #f0ddb0;
+    --text: #1a1208;
+    --text-muted: #7a6030;
+    --text-faint: #c9a84c;
+    --shadow: rgba(245,166,35,0.15);
+    --radius: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .bg-blobs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.18; }
+  .blob-1 { width: 560px; height: 560px; background: var(--primary); top: -160px; right: -80px; }
+  .blob-2 { width: 380px; height: 380px; background: var(--primary-light); bottom: 80px; left: -100px; }
+
+
+
+  /* HERO */
+  .hero {
+    position: relative; z-index: 1; text-align: center;
+    padding: 64px 24px 44px;
+    animation: fadeUp 0.45s ease both;
+  }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: var(--primary-soft); border: 1.5px solid var(--primary-light);
+    border-radius: 50px; padding: 5px 14px;
+    font-size: 0.71rem; font-weight: 600; color: var(--primary-dark);
+    letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 20px;
+  }
+  .hero-badge-dot { width: 6px; height: 6px; background: var(--primary); border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(.6)} }
+
+  .hero-logo-wrap { display: flex; justify-content: center; margin-bottom: 18px; }
+  .hero-logo { width: 100px; height: 100px; object-fit: contain; filter: drop-shadow(0 8px 22px rgba(245,166,35,0.30)); }
+
+  .hero-title { font-size: clamp(1.9rem, 5vw, 3rem); font-weight: 700; letter-spacing: -0.6px; line-height: 1.12; color: var(--text); margin-bottom: 14px; }
+  .hero-title .highlight { color: var(--primary); }
+
+  .hero-sub { font-size: 0.98rem; color: var(--text-muted); font-weight: 400; max-width: 400px; margin: 0 auto 30px; line-height: 1.65; }
+
+  .hero-pills { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .hero-pill {
+    background: var(--white); border: 1.5px solid var(--border);
+    border-radius: 50px; padding: 5px 14px;
+    font-size: 0.74rem; font-weight: 500; color: var(--text-muted);
+    display: flex; align-items: center; gap: 5px;
+  }
+
+  /* SECTION */
+  .section { position: relative; z-index: 1; max-width: 1040px; margin: 0 auto; padding: 0 28px 80px; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; flex-wrap: wrap; gap: 8px; }
+  .section-title { font-size: 1.15rem; font-weight: 700; color: var(--text); }
+  .section-count { font-size: 0.74rem; font-weight: 500; color: var(--text-faint); letter-spacing: 0.04em; text-transform: uppercase; }
+
+  /* GRID */
+  .tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(285px, 1fr)); gap: 16px; }
+
+  .tool-card {
+    background: var(--white); border: 1.5px solid var(--border);
+    border-radius: var(--radius); padding: 24px 22px 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s, border-color 0.2s;
+    position: relative; overflow: hidden;
+    animation: fadeUp 0.45s ease both;
+  }
+  .tool-card:nth-child(2) { animation-delay: 0.07s; }
+  .tool-card:nth-child(3) { animation-delay: 0.14s; }
+  .tool-card::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--primary-light));
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.25s ease; border-radius: 16px 16px 0 0;
+  }
+  .tool-card:hover { transform: translateY(-5px); box-shadow: 0 14px 38px var(--shadow); border-color: var(--primary-light); }
+  .tool-card:hover::after { transform: scaleX(1); }
+
+  .tool-icon-wrap {
+    width: 50px; height: 50px; border-radius: 12px;
+    background: var(--primary-soft); border: 1.5px solid var(--primary-light);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.45rem; margin-bottom: 14px;
+    transition: transform 0.2s;
+  }
+  .tool-card:hover .tool-icon-wrap { transform: scale(1.08) rotate(-3deg); }
+
+  .tool-name { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 7px; }
+  .tool-desc { font-size: 0.81rem; color: var(--text-muted); line-height: 1.6; font-weight: 400; margin-bottom: 16px; }
+
+  .tool-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 16px; }
+  .tag { background: var(--primary-soft); color: var(--primary-dark); border: 1px solid var(--primary-light); border-radius: 50px; padding: 3px 10px; font-size: 0.64rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+
+  .tool-cta {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--primary); color: #fff; border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
+    padding: 9px 18px; border-radius: 50px; text-decoration: none;
+    transition: background 0.18s, transform 0.15s;
+  }
+  .tool-cta:hover { background: var(--primary-dark); transform: scale(1.03); }
+  .tool-cta svg { transition: transform 0.18s; }
+  .tool-card:hover .tool-cta svg { transform: translateX(3px); }
+
+  /* NO RESULTS */
+  .no-results { display: none; text-align: center; padding: 60px 20px; color: var(--text-faint); }
+  .no-results-icon { font-size: 2.2rem; margin-bottom: 10px; }
+  .no-results-title { font-size: 1rem; font-weight: 700; color: var(--text-muted); margin-bottom: 5px; }
+  .no-results-sub { font-size: 0.8rem; }
+
+  /* FOOTER */
+  footer {
+    position: relative; z-index: 1;
+    border-top: 1px solid var(--border); background: var(--white);
+    padding: 22px 40px;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+  }
+  .footer-brand { font-size: 0.88rem; font-weight: 700; color: var(--text); }
+  .footer-brand span { color: var(--primary); }
+  .footer-copy { font-size: 0.71rem; color: var(--text-faint); }
+
+  @media (max-width: 600px) {
+    nav { padding: 0 16px; }
+    .hero { padding: 46px 16px 30px; }
+    .section { padding: 0 16px 60px; }
+    footer { padding: 18px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-blobs">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+</div>
+
+
+
+<!-- HERO -->
+<section class="hero">
+
+  <div class="hero-logo-wrap">
+    <img class="hero-logo" src="logo.png" alt="Toolz logo">
+  </div>
+  <h1 class="hero-title">Simple <span class="highlight">Toolz</span> for<br>Everyday Work</h1>
+  <p class="hero-sub">A growing collection of free, browser-based tools. No installs, no accounts — just open and use.</p>
+  <div class="hero-pills">
+    <div class="hero-pill">⚡ Fast</div>
+    <div class="hero-pill">🔒 Private</div>
+    <div class="hero-pill">🌐 Browser-based</div>
+    <div class="hero-pill">💸 Always free</div>
+  </div>
+</section>
+
+<!-- TOOLS -->
+<main class="section">
+  <div class="section-header">
+    <h2 class="section-title">All Tools</h2>
+    <span class="section-count" id="toolsCount"></span>
+  </div>
+
+  <div class="tools-grid" id="toolsGrid">
+
+    <div class="tool-card" data-keywords="geotag geo location image metadata exif coordinates map">
+      <div class="tool-icon-wrap">📍</div>
+      <div class="tool-name">Geotag Tool</div>
+      <div class="tool-desc">Generate geotag metadata for images. Enter coordinates and get EXIF-compatible geo data in multiple formats.</div>
+      <div class="tool-tags">
+        <span class="tag">Geo</span>
+        <span class="tag">Image</span>
+        <span class="tag">Metadata</span>
+      </div>
+      <a class="tool-cta" href="geotag.html" target="_blank">
+        Open Tool
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="8" x2="13" y2="8"/><polyline points="9,4 13,8 9,12"/></svg>
+      </a>
+    </div>
+
+    <div class="tool-card" data-keywords="markdown editor md file preview write format notes">
+      <div class="tool-icon-wrap">✍️</div>
+      <div class="tool-name">MD File Editor</div>
+      <div class="tool-desc">Write and preview Markdown in real time. Supports headings, bold, lists, code blocks, and more. Download as .md.</div>
+      <div class="tool-tags">
+        <span class="tag">Markdown</span>
+        <span class="tag">Editor</span>
+        <span class="tag">Preview</span>
+      </div>
+      <a class="tool-cta" href="mdeditor.html" target="_blank">
+        Open Tool
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="8" x2="13" y2="8"/><polyline points="9,4 13,8 9,12"/></svg>
+      </a>
+    </div>
+
+    <div class="tool-card" data-keywords="word counter count characters sentences reading time text seo writing">
+      <div class="tool-icon-wrap">🔢</div>
+      <div class="tool-name">Word Counter</div>
+      <div class="tool-desc">Count words, characters, sentences and paragraphs instantly. Get reading time estimates — great for SEO content writing.</div>
+      <div class="tool-tags">
+        <span class="tag">Writing</span>
+        <span class="tag">SEO</span>
+        <span class="tag">Count</span>
+      </div>
+      <a class="tool-cta" href="wordcounter.html" target="_blank">
+        Open Tool
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="8" x2="13" y2="8"/><polyline points="9,4 13,8 9,12"/></svg>
+      </a>
+    </div>
+
+  </div>
+
+  <div class="no-results" id="noResults">
+    <div class="no-results-icon">🔍</div>
+    <div class="no-results-title">No tools found</div>
+    <div class="no-results-sub">Try a different keyword</div>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-brand">Toolz <span>by Diganta</span></div>
+  <div class="footer-copy">Free tools, always. Made with ☕</div>
+</footer>
+
+<script>
+  function updateCount() {
+    const visible = [...document.querySelectorAll('.tool-card')].filter(c => c.style.display !== 'none').length;
+    document.getElementById('toolsCount').textContent = `${visible} tool${visible !== 1 ? 's' : ''}`;
+  }
+  updateCount();
+
+  function filterTools(val) {
+    const v = val.toLowerCase().trim();
+    let visible = 0;
+    document.querySelectorAll('.tool-card').forEach(card => {
+      const hay = (card.dataset.keywords + ' ' +
+        card.querySelector('.tool-name').textContent + ' ' +
+        card.querySelector('.tool-desc').textContent).toLowerCase();
+      const match = !v || hay.includes(v);
+      card.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    document.getElementById('noResults').style.display = visible === 0 ? 'block' : 'none';
+    document.getElementById('toolsCount').textContent = `${visible} tool${visible !== 1 ? 's' : ''}`;
+  }
+</script>
+</body>
+</html>

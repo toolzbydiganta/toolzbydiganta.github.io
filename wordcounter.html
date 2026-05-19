@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Count Every Details</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: #f0faf0;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 16px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      color: #2e7d32;
+      letter-spacing: 1px;
+    }
+
+    header p {
+      color: #6a8f6a;
+      margin-top: 6px;
+      font-size: 0.95rem;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(60,120,60,0.10);
+      padding: 32px 28px;
+      width: 100%;
+      max-width: 640px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 200px;
+      background: #f8f8f0;
+      border: 2px solid #c8e6c9;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 1rem;
+      color: #333;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: inherit;
+      line-height: 1.6;
+    }
+
+    textarea::placeholder { color: #aaa; }
+
+    textarea:focus { border-color: #66bb6a; }
+
+    .stats {
+      display: flex;
+      gap: 14px;
+      margin-top: 22px;
+      flex-wrap: wrap;
+    }
+
+    .stat-box {
+      flex: 1;
+      min-width: 140px;
+      background: #e8f5e9;
+      border: 1.5px solid #a5d6a7;
+      border-radius: 12px;
+      padding: 18px 14px;
+      text-align: center;
+    }
+
+    .stat-box .count {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #2e7d32;
+      line-height: 1;
+    }
+
+    .stat-box .label {
+      font-size: 0.82rem;
+      color: #5a7a5a;
+      margin-top: 8px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-clear {
+      margin-top: 20px;
+      width: 100%;
+      padding: 11px;
+      background: #66bb6a;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      letter-spacing: 0.3px;
+    }
+
+    .btn-clear:hover { background: #43a047; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Count Every Details</h1>
+    <p>Type or paste your text below to see live counts</p>
+  </header>
+
+  <div class="card">
+    <textarea id="txt" placeholder="Start typing or paste your text here..."></textarea>
+
+    <div class="stats">
+      <div class="stat-box">
+        <div class="count" id="words">0</div>
+        <div class="label">Words</div>
+      </div>
+      <div class="stat-box">
+        <div class="count" id="chars">0</div>
+        <div class="label">Characters</div>
+      </div>
+      <div class="stat-box">
+        <div class="count" id="chars_no_space">0</div>
+        <div class="label">Chars (no spaces)</div>
+      </div>
+    </div>
+
+    <button class="btn-clear" onclick="clearText()">Clear Text</button>
+  </div>
+
+  <script>
+    const txt = document.getElementById('txt');
+
+    txt.addEventListener('input', update);
+
+    function update() {
+      const val = txt.value;
+      const words = val.trim() === '' ? 0 : val.trim().split(/\s+/).length;
+      document.getElementById('words').textContent = words;
+      document.getElementById('chars').textContent = val.length;
+      document.getElementById('chars_no_space').textContent = val.replace(/\s/g, '').length;
+    }
+
+    function clearText() {
+      txt.value = '';
+      update();
+    }
+  </script>
+
+</body>
+</html>

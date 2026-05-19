@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brain Pickle</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500&family=Libre+Baskerville:ital@0;1&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.1.2/turndown.min.js"></script>
+<style>
+  :root {
+    /* Off-white background palette */
+    --bg: #f5f0eb;
+    --surface: #ffffff;
+    --surface2: #f0ebe4;
+    --surface3: #e8e1d9;
+    --border: #ddd6cc;
+    --border-active: #da7756;
+
+    /* Text */
+    --text: #2a2318;
+    --text-muted: #8a7d6e;
+    --text-faint: #c4b8a8;
+
+    /* Claude-logo orange accent */
+    --accent: #da7756;
+    --accent-dark: #c05e3e;
+    --accent2: #e05a3a;
+    --accent3: #7a6a5a;
+    --accent-glow: rgba(218,119,86,0.12);
+
+    --sidebar-w: 280px;
+    --radius: 10px;
+
+    /* Header orange */
+    --header-bg: #da7756;
+    --header-text: #ffffff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    height: 54px;
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--accent-dark);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 14px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 2px 12px rgba(218,119,86,0.3);
+  }
+
+  /* Creative title font: Instrument Serif italic — editorial, warm, distinctive */
+  .logo {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 1.55rem;
+    font-weight: 400;
+    letter-spacing: -0.3px;
+    color: var(--header-text);
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    white-space: nowrap;
+  }
+
+  .logo-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.7);
+    box-shadow: 0 0 10px rgba(255,255,255,0.5);
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity:1; transform:scale(1); }
+    50% { opacity:.4; transform:scale(.75); }
+  }
+
+  .topbar-sep { width: 1px; height: 22px; background: rgba(255,255,255,0.3); }
+
+  .note-count {
+    font-size: .68rem;
+    color: rgba(255,255,255,0.75);
+    letter-spacing: .06em;
+  }
+
+  .topbar-actions { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+
+  .btn-new {
+    display: flex; align-items: center; gap: 7px;
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.35);
+    cursor: pointer;
+    padding: 7px 14px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .72rem;
+    font-weight: 500;
+    letter-spacing: .04em;
+    transition: all .2s;
+    backdrop-filter: blur(4px);
+  }
+  .btn-new:hover {
+    background: rgba(255,255,255,0.3);
+    border-color: rgba(255,255,255,0.6);
+    transform: translateY(-1px);
+  }
+  .btn-new svg { width:13px; height:13px; }
+
+  .btn-import {
+    display: flex; align-items: center; gap: 7px;
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.85);
+    border: 1px solid rgba(255,255,255,0.22);
+    cursor: pointer;
+    padding: 7px 14px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .72rem;
+    font-weight: 500;
+    letter-spacing: .04em;
+    transition: all .2s;
+    backdrop-filter: blur(4px);
+  }
+  .btn-import:hover {
+    background: rgba(255,255,255,0.18);
+    border-color: rgba(255,255,255,0.45);
+    transform: translateY(-1px);
+  }
+  .btn-import svg { width:13px; height:13px; }
+
+  /* ── LAYOUT ── */
+  .app-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .sidebar-header {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .search-wrap { position: relative; }
+  .search-wrap svg {
+    position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+    color: var(--text-faint); pointer-events: none;
+    width: 13px; height: 13px;
+  }
+  .search-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .72rem;
+    padding: 7px 10px 7px 28px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .search-input:focus { border-color: var(--border-active); }
+  .search-input::placeholder { color: var(--text-faint); }
+
+  .notes-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+  }
+  .notes-list::-webkit-scrollbar { width: 4px; }
+  .notes-list::-webkit-scrollbar-track { background: transparent; }
+  .notes-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .note-item {
+    padding: 11px 13px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    border: 1px solid transparent;
+    margin-bottom: 4px;
+    transition: all .18s;
+    position: relative;
+    overflow: hidden;
+  }
+  .note-item::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    transform: scaleY(0);
+    transition: transform .2s;
+    border-radius: 0 2px 2px 0;
+  }
+  .note-item:hover { background: var(--surface2); border-color: var(--border); }
+  .note-item.active {
+    background: var(--surface2);
+    border-color: var(--border-active);
+    box-shadow: inset 0 0 20px var(--accent-glow);
+  }
+  .note-item.active::before { transform: scaleY(1); }
+
+  .note-item-title {
+    font-size: .78rem;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+  }
+  .note-item.active .note-item-title { color: var(--accent-dark); }
+
+  .note-item-meta {
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .note-item-date {
+    font-size: .63rem;
+    color: var(--text-muted);
+  }
+  .note-item-preview {
+    font-size: .65rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 3px;
+  }
+
+  .note-item-del {
+    opacity: 0;
+    background: none; border: none; cursor: pointer;
+    color: var(--accent2);
+    padding: 2px 4px; border-radius: 4px;
+    transition: all .15s;
+    font-size: .7rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .note-item:hover .note-item-del { opacity: 1; }
+  .note-item-del:hover { background: rgba(218,119,86,.12); }
+
+  .empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-faint);
+    font-size: .73rem;
+    line-height: 1.7;
+    display: none;
+  }
+  .empty-state .empty-icon { font-size: 2rem; margin-bottom: 10px; opacity: .4; }
+
+  /* ── EDITOR / PREVIEW ── */
+  .editor-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .editor-toolbar {
+    height: 46px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .note-title-input {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text);
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 1.05rem;
+    font-weight: 400;
+    outline: none;
+    letter-spacing: -0.2px;
+  }
+  .note-title-input::placeholder { color: var(--text-faint); font-style: italic; }
+
+  .toolbar-sep { width: 1px; height: 20px; background: var(--border); margin: 0 6px; }
+
+  .view-toggle {
+    display: flex;
+    background: var(--surface2);
+    border-radius: 6px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .view-btn {
+    background: none; border: none; cursor: pointer;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .66rem;
+    padding: 4px 9px;
+    border-radius: 4px;
+    transition: all .15s;
+    letter-spacing: .04em;
+  }
+  .view-btn.active { background: var(--surface); color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .view-btn:hover:not(.active) { color: var(--text); }
+
+  /* ── SAVE BUTTON GROUP ── */
+  .save-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .btn-save {
+    background: none; border: 1px solid var(--border);
+    color: var(--accent); cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .68rem; padding: 5px 10px;
+    border-radius: 6px 0 0 6px;
+    border-right: none;
+    transition: all .2s;
+    letter-spacing: .04em;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .btn-save:hover { border-color: var(--accent); background: var(--accent-glow); }
+  .btn-save.saved { color: var(--text-muted); border-color: transparent; border-right: none; }
+
+  .btn-save-dropdown {
+    background: none; border: 1px solid var(--border);
+    color: var(--accent); cursor: pointer;
+    font-size: .68rem; padding: 5px 7px;
+    border-radius: 0 6px 6px 0;
+    transition: all .2s;
+    display: flex; align-items: center;
+    line-height: 1;
+  }
+  .btn-save-dropdown:hover { border-color: var(--accent); background: var(--accent-glow); }
+  .btn-save.saved + .btn-save-dropdown { border-color: transparent; color: var(--text-muted); }
+
+  /* Download dropdown menu */
+  .save-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    min-width: 170px;
+    z-index: 50;
+    overflow: hidden;
+    animation: menuIn .15s ease;
+  }
+  .save-menu.open { display: block; }
+  @keyframes menuIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .save-menu-label {
+    font-size: .6rem;
+    color: var(--text-muted);
+    padding: 8px 13px 4px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+  .save-menu-item {
+    display: flex; align-items: center; gap: 9px;
+    padding: 9px 13px;
+    cursor: pointer;
+    font-size: .72rem;
+    color: var(--text);
+    transition: background .15s;
+    border: none; background: none;
+    width: 100%; text-align: left;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .save-menu-item:hover { background: var(--surface2); }
+  .save-menu-item .menu-icon { font-size: .85rem; }
+  .save-menu-item .menu-ext {
+    margin-left: auto;
+    font-size: .6rem;
+    color: var(--text-muted);
+    background: var(--surface2);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  .editor-panes {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+
+  .pane-editor, .pane-preview {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px 32px;
+  }
+  .pane-editor::-webkit-scrollbar,
+  .pane-preview::-webkit-scrollbar { width: 4px; }
+  .pane-editor::-webkit-scrollbar-track,
+  .pane-preview::-webkit-scrollbar-track { background: transparent; }
+  .pane-editor::-webkit-scrollbar-thumb,
+  .pane-preview::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .pane-editor { border-right: 1px solid var(--border); background: var(--surface); }
+
+  .pane-editor textarea {
+    width: 100%; height: 100%;
+    background: none; border: none; outline: none; resize: none;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .82rem;
+    line-height: 1.78;
+    caret-color: var(--accent);
+  }
+  .pane-editor textarea::placeholder { color: var(--text-faint); }
+
+  /* split / single mode */
+  .editor-panes.mode-edit .pane-preview { display: none; }
+  .editor-panes.mode-preview .pane-editor { display: none; }
+
+  /* ── MARKDOWN PREVIEW ── */
+  .pane-preview { background: var(--bg); }
+  .md-content { max-width: 680px; }
+  .md-content h1 {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 2rem; font-weight: 400;
+    color: var(--text); margin-bottom: .5em;
+    border-bottom: 2px solid var(--border); padding-bottom: .3em;
+  }
+  .md-content h2 {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 1.4rem; font-weight: 400;
+    color: var(--text); margin: 1.4em 0 .4em;
+  }
+  .md-content h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .88rem; font-weight: 500;
+    color: var(--accent); margin: 1.2em 0 .35em;
+    text-transform: uppercase; letter-spacing: .08em;
+  }
+  .md-content p {
+    font-family: 'Libre Baskerville', serif;
+    font-size: .9rem; line-height: 1.88;
+    color: #4a3d30; margin-bottom: 1em;
+  }
+  .md-content strong { color: var(--text); font-weight: bold; }
+  .md-content em { font-style: italic; color: #6a5a48; }
+  .md-content ul, .md-content ol {
+    font-family: 'Libre Baskerville', serif;
+    font-size: .88rem; line-height: 1.8;
+    color: #4a3d30; padding-left: 1.5em; margin-bottom: 1em;
+  }
+  .md-content li { margin-bottom: .25em; }
+  .md-content code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .78rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 2px 6px; border-radius: 4px;
+    color: var(--accent-dark);
+  }
+  .md-content pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px; margin-bottom: 1em;
+    overflow-x: auto;
+  }
+  .md-content pre code {
+    background: none; border: none; padding: 0;
+    font-size: .78rem; color: var(--text);
+  }
+  .md-content blockquote {
+    border-left: 3px solid var(--accent);
+    padding: 8px 16px; margin: 1em 0;
+    background: var(--accent-glow);
+    border-radius: 0 var(--radius) var(--radius) 0;
+  }
+  .md-content blockquote p { color: var(--text-muted); }
+  .md-content a { color: var(--accent); text-decoration: none; }
+  .md-content a:hover { text-decoration: underline; }
+  .md-content hr {
+    border: none; border-top: 1px solid var(--border); margin: 1.5em 0;
+  }
+  .md-content table {
+    width: 100%; border-collapse: collapse; margin-bottom: 1em;
+    font-family: 'JetBrains Mono', monospace; font-size: .76rem;
+  }
+  .md-content th {
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 8px 12px; text-align: left; color: var(--accent);
+    font-weight: 500; letter-spacing: .04em;
+  }
+  .md-content td {
+    border: 1px solid var(--border); padding: 7px 12px;
+    color: #4a3d30;
+  }
+  .md-content tr:nth-child(even) td { background: rgba(0,0,0,.02); }
+
+  /* ── WELCOME / NO NOTE ── */
+  .no-note {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: var(--text-faint); gap: 14px;
+    padding: 40px;
+    text-align: center;
+  }
+  .no-note-icon {
+    width: 60px; height: 60px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem; opacity: .35;
+  }
+  .no-note h3 {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 1.15rem; font-weight: 400;
+    color: var(--text-muted);
+  }
+  .no-note p { font-size: .7rem; line-height: 1.7; }
+
+  /* ── DELETE CONFIRM ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(42,35,24,.5); backdrop-filter: blur(4px);
+    z-index: 100; align-items: center; justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 28px 32px;
+    max-width: 340px; width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,.15);
+    animation: modalIn .2s ease;
+  }
+  @keyframes modalIn {
+    from { transform: scale(.94); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+  .modal h3 {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 1.1rem; color: var(--text); margin-bottom: 8px;
+  }
+  .modal p { font-size: .73rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 22px; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .btn-cancel {
+    background: none; border: 1px solid var(--border);
+    color: var(--text-muted); cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .72rem; padding: 7px 14px; border-radius: 6px;
+    transition: all .15s;
+  }
+  .btn-cancel:hover { border-color: var(--text-muted); color: var(--text); }
+  .btn-del-confirm {
+    background: rgba(218,119,86,.1);
+    border: 1px solid var(--accent2);
+    color: var(--accent2); cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .72rem; padding: 7px 14px; border-radius: 6px;
+    transition: all .15s;
+  }
+  .btn-del-confirm:hover { background: rgba(218,119,86,.2); }
+
+  /* ── MARKDOWN TOOLBAR ── */
+  .md-toolbar {
+    height: 36px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 10px; gap: 2px;
+    flex-shrink: 0;
+  }
+  .md-btn {
+    background: none; border: none; cursor: pointer;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .7rem; padding: 4px 7px; border-radius: 4px;
+    transition: all .15s; line-height: 1;
+  }
+  .md-btn:hover { background: var(--surface3); color: var(--text); }
+  .md-btn.bold-btn { font-weight: 700; }
+  .md-btn.italic-btn { font-style: italic; }
+  .md-sep { width: 1px; height: 16px; background: var(--border); margin: 0 4px; }
+
+  /* toast */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--accent); border-radius: 8px;
+    padding: 10px 16px; font-size: .72rem;
+    transform: translateY(60px); opacity: 0;
+    transition: all .3s cubic-bezier(.34,1.56,.64,1);
+    pointer-events: none; z-index: 200;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* word count */
+  .wc { font-size: .63rem; color: var(--text-faint); }
+
+  /* ── EDITABLE PREVIEW ── */
+  .md-content[contenteditable="true"] {
+    outline: none;
+    min-height: 200px;
+    cursor: text;
+    caret-color: var(--accent);
+  }
+  .md-content[contenteditable="true"]:empty::before {
+    content: 'Start typing here… (plain text becomes markdown)';
+    color: var(--text-faint);
+    font-family: 'Libre Baskerville', serif;
+    font-style: italic;
+    font-size: .9rem;
+    pointer-events: none;
+  }
+  /* Subtle editable indicator on the preview pane */
+  .pane-preview {
+    position: relative;
+  }
+  .pane-preview-label {
+    position: absolute;
+    top: 10px; right: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .58rem;
+    color: var(--text-faint);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .2s;
+  }
+  .pane-preview:hover .pane-preview-label,
+  .pane-preview:focus-within .pane-preview-label { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-dot"></div>
+    Brain Pickle
+  </div>
+  <div class="topbar-sep"></div>
+  <span class="note-count" id="noteCount">0 notes</span>
+  <div class="topbar-actions">
+    <button class="btn-import" onclick="triggerImport()" title="Import a .md file as a new note">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2v8m0 0L5 7m3 3l3-3"/><path d="M3 12h10"/></svg>
+      Import .md
+    </button>
+    <input type="file" id="mdFileInput" accept=".md,.markdown,text/markdown" style="display:none" onchange="importMdFile(event)">
+    <button class="btn-new" onclick="newNote()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/></svg>
+      New Note
+    </button>
+  </div>
+</div>
+
+<div class="app-body">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="search-wrap">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="6.5" cy="6.5" r="4.5"/><line x1="10" y1="10" x2="14" y2="14"/>
+        </svg>
+        <input class="search-input" id="searchInput" placeholder="Search notes…" oninput="filterNotes(this.value)">
+      </div>
+    </div>
+    <div class="notes-list" id="notesList">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">✦</div>
+        No notes yet.<br>Click <em>New Note</em> to begin.
+      </div>
+    </div>
+  </div>
+
+  <!-- EDITOR / NO-NOTE -->
+  <div class="editor-area" id="editorArea">
+    <div class="no-note" id="noNote">
+      <div class="no-note-icon">✦</div>
+      <h3>No note selected</h3>
+      <p>Pick a note from the sidebar<br>or create a new one.</p>
+    </div>
+
+    <div id="noteEditor" style="display:none; flex:1; flex-direction:column; overflow:hidden;">
+      <!-- title bar -->
+      <div class="editor-toolbar">
+        <input class="note-title-input" id="noteTitleInput" placeholder="Untitled Note…" oninput="onTitleChange()">
+        <div class="toolbar-sep"></div>
+        <span class="wc" id="wordCount">0 words</span>
+        <div class="toolbar-sep"></div>
+        <div class="view-toggle">
+          <button class="view-btn active" id="btnEdit" onclick="setView('edit')">Edit</button>
+          <button class="view-btn" id="btnSplit" onclick="setView('split')">Split</button>
+          <button class="view-btn" id="btnPreview" onclick="setView('preview')">Preview</button>
+        </div>
+        <div class="toolbar-sep"></div>
+
+        <!-- Save group with dropdown -->
+        <div class="save-group" id="saveGroup">
+          <button class="btn-save" id="btnSave" onclick="saveNote()">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M13 2H3a1 1 0 00-1 1v10a1 1 0 001 1h10a1 1 0 001-1V5l-3-3z"/>
+              <polyline points="9,2 9,6 5,6"/>
+              <polyline points="5,10 11,10"/>
+            </svg>
+            Save
+          </button>
+          <button class="btn-save-dropdown" id="btnSaveDropdown" onclick="toggleSaveMenu(event)" title="Download file">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M5 7L1 3h8z"/></svg>
+          </button>
+          <div class="save-menu" id="saveMenu">
+            <div class="save-menu-label">Download as</div>
+            <button class="save-menu-item" onclick="downloadFile('md')">
+              <span class="menu-icon">📄</span>
+              Markdown
+              <span class="menu-ext">.md</span>
+            </button>
+            <button class="save-menu-item" onclick="downloadFile('txt')">
+              <span class="menu-icon">📝</span>
+              Plain Text
+              <span class="menu-ext">.txt</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- md shortcut toolbar -->
+      <div class="md-toolbar" id="mdToolbar">
+        <button class="md-btn bold-btn" onclick="insertMd('**','**','bold text')" title="Bold">B</button>
+        <button class="md-btn italic-btn" onclick="insertMd('*','*','italic text')" title="Italic">I</button>
+        <button class="md-btn" onclick="insertMd('~~','~~','strikethrough')" title="Strikethrough">S̶</button>
+        <div class="md-sep"></div>
+        <button class="md-btn" onclick="insertLine('# ')" title="H1">H1</button>
+        <button class="md-btn" onclick="insertLine('## ')" title="H2">H2</button>
+        <button class="md-btn" onclick="insertLine('### ')" title="H3">H3</button>
+        <div class="md-sep"></div>
+        <button class="md-btn" onclick="insertLine('- ')" title="Bullet list">• List</button>
+        <button class="md-btn" onclick="insertLine('1. ')" title="Ordered list">1. List</button>
+        <button class="md-btn" onclick="insertLine('> ')" title="Blockquote">❝ Quote</button>
+        <div class="md-sep"></div>
+        <button class="md-btn" onclick="insertMd('`','`','code')" title="Inline code">`code`</button>
+        <button class="md-btn" onclick="insertLine('```\n','```')" title="Code block">``` block</button>
+        <div class="md-sep"></div>
+        <button class="md-btn" onclick="insertMd('[','](url)','link text')" title="Link">🔗</button>
+        <button class="md-btn" onclick="insertLine('---')" title="Divider">― HR</button>
+      </div>
+
+      <!-- panes -->
+      <div class="editor-panes mode-split" id="editorPanes">
+        <div class="pane-editor">
+          <textarea id="mdEditor" placeholder="Start writing in **markdown**…&#10;&#10;# Heading&#10;## Subheading&#10;&#10;- bullet&#10;- items&#10;&#10;`code` and **bold**" oninput="onEditorChange()" onkeydown="handleTab(event)"></textarea>
+        </div>
+        <div class="pane-preview">
+          <span class="pane-preview-label">✎ editable</span>
+          <div class="md-content" id="preview" contenteditable="true" spellcheck="true" oninput="onPreviewChange()"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Delete Modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <h3>Delete note?</h3>
+    <p>This action cannot be undone. The note will be permanently removed from your local storage.</p>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-del-confirm" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STORAGE HELPERS ──
+const STORAGE_KEY = 'brainpickle_v1';
+
+function loadNotes() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch { return []; }
+}
+function saveNotes(notes) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+}
+
+// ── TURNDOWN (HTML → Markdown) ──
+const turndownService = new TurndownService({
+  headingStyle: 'atx',
+  codeBlockStyle: 'fenced',
+  bulletListMarker: '-'
+});
+
+// ── STATE ──
+let notes = loadNotes();
+let activeId = null;
+let deleteTarget = null;
+let viewMode = 'split';
+let saveTimer = null;
+
+// Anti-loop guards for bidirectional sync
+let _syncFromEditor = false;
+let _syncFromPreview = false;
+
+// ── INIT ──
+function init() {
+  renderList();
+  if (notes.length > 0) openNote(notes[0].id);
+
+  // Close save menu on outside click
+  document.addEventListener('click', (e) => {
+    if (!document.getElementById('saveGroup').contains(e.target)) {
+      closeSaveMenu();
+    }
+  });
+}
+
+// ── NOTE CREATION ──
+function newNote() {
+  const note = {
+    id: Date.now().toString(),
+    title: '',
+    content: '',
+    created: new Date().toISOString(),
+    updated: new Date().toISOString()
+  };
+  notes.unshift(note);
+  saveNotes(notes);
+  renderList();
+  openNote(note.id);
+  document.getElementById('noteTitleInput').focus();
+}
+
+// ── RENDER SIDEBAR ──
+function renderList(filter = '') {
+  const list = document.getElementById('notesList');
+  const empty = document.getElementById('emptyState');
+  const countEl = document.getElementById('noteCount');
+
+  const filtered = filter
+    ? notes.filter(n =>
+        n.title.toLowerCase().includes(filter.toLowerCase()) ||
+        n.content.toLowerCase().includes(filter.toLowerCase()))
+    : notes;
+
+  list.querySelectorAll('.note-item').forEach(el => el.remove());
+
+  countEl.textContent = `${notes.length} note${notes.length !== 1 ? 's' : ''}`;
+
+  if (filtered.length === 0) {
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  filtered.forEach(note => {
+    const el = document.createElement('div');
+    el.className = 'note-item' + (note.id === activeId ? ' active' : '');
+    el.dataset.id = note.id;
+    const date = new Date(note.updated);
+    const dateStr = date.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+    const preview = note.content.replace(/[#*`_~>-]/g, '').slice(0, 60) || 'No content';
+    el.innerHTML = `
+      <div class="note-item-title">${note.title || 'Untitled Note'}</div>
+      <div class="note-item-preview">${preview}</div>
+      <div class="note-item-meta">
+        <span class="note-item-date">${dateStr}</span>
+        <button class="note-item-del" title="Delete note" onclick="askDelete(event,'${note.id}')">✕</button>
+      </div>`;
+    el.addEventListener('click', () => openNote(note.id));
+    list.appendChild(el);
+  });
+}
+
+// ── OPEN NOTE ──
+function openNote(id) {
+  activeId = id;
+  const note = notes.find(n => n.id === id);
+  if (!note) return;
+
+  document.getElementById('noNote').style.display = 'none';
+  const ed = document.getElementById('noteEditor');
+  ed.style.display = 'flex';
+
+  document.getElementById('noteTitleInput').value = note.title;
+  document.getElementById('mdEditor').value = note.content;
+
+  // Force preview refresh regardless of focus state
+  _syncFromPreview = false;
+  _syncFromEditor = false;
+  const preview = document.getElementById('preview');
+  preview.innerHTML = note.content ? marked.parse(note.content) : '';
+
+  updateWordCount(note.content);
+  markSaved();
+
+  renderList(document.getElementById('searchInput').value);
+}
+
+// ── TITLE CHANGE ──
+function onTitleChange() {
+  scheduleSave();
+  const title = document.getElementById('noteTitleInput').value;
+  const el = document.querySelector(`.note-item[data-id="${activeId}"] .note-item-title`);
+  if (el) el.textContent = title || 'Untitled Note';
+}
+
+// ── EDITOR CHANGE ──
+function onEditorChange() {
+  const content = document.getElementById('mdEditor').value;
+  updatePreview(content);
+  updateWordCount(content);
+  scheduleSave();
+  markUnsaved();
+}
+
+function updatePreview(md) {
+  const preview = document.getElementById('preview');
+  // Don't stomp on user's edits in the preview pane
+  if (_syncFromPreview || document.activeElement === preview) return;
+  _syncFromEditor = true;
+  preview.innerHTML = md ? marked.parse(md) : '';
+  _syncFromEditor = false;
+}
+
+function updateWordCount(text) {
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+  document.getElementById('wordCount').textContent = `${words} word${words !== 1 ? 's' : ''}`;
+}
+
+// ── PREVIEW → EDITOR SYNC ──
+function onPreviewChange() {
+  if (_syncFromEditor) return; // Editor triggered the preview update — ignore
+  const preview = document.getElementById('preview');
+  _syncFromPreview = true;
+  const markdown = turndownService.turndown(preview.innerHTML);
+  const ta = document.getElementById('mdEditor');
+  ta.value = markdown;
+  updateWordCount(markdown);
+  scheduleSave();
+  markUnsaved();
+  // Update sidebar preview snippet
+  const el = document.querySelector(`.note-item[data-id="${activeId}"] .note-item-preview`);
+  if (el) el.textContent = markdown.replace(/[#*`_~>-]/g, '').slice(0, 60) || 'No content';
+  _syncFromPreview = false;
+}
+
+// ── AUTO-SAVE ──
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => saveNote(true), 1200);
+}
+
+function saveNote(silent = false) {
+  if (!activeId) return;
+  const note = notes.find(n => n.id === activeId);
+  if (!note) return;
+  note.title = document.getElementById('noteTitleInput').value;
+  note.content = document.getElementById('mdEditor').value;
+  note.updated = new Date().toISOString();
+  notes = [note, ...notes.filter(n => n.id !== activeId)];
+  saveNotes(notes);
+  renderList(document.getElementById('searchInput').value);
+  markSaved();
+  if (!silent) showToast('Note saved ✓');
+}
+
+function markSaved() {
+  const btn = document.getElementById('btnSave');
+  btn.textContent = '✓ Saved';
+  btn.classList.add('saved');
+  document.getElementById('btnSaveDropdown').classList.add ? null : null;
+  document.getElementById('btnSaveDropdown').style.borderColor = '';
+}
+function markUnsaved() {
+  const btn = document.getElementById('btnSave');
+  btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H3a1 1 0 00-1 1v10a1 1 0 001 1h10a1 1 0 001-1V5l-3-3z"/><polyline points="9,2 9,6 5,6"/><polyline points="5,10 11,10"/></svg> Save`;
+  btn.classList.remove('saved');
+}
+
+// ── SAVE MENU ──
+function toggleSaveMenu(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('saveMenu');
+  menu.classList.toggle('open');
+}
+function closeSaveMenu() {
+  document.getElementById('saveMenu').classList.remove('open');
+}
+
+// ── DOWNLOAD FILE ──
+function downloadFile(format) {
+  if (!activeId) { showToast('No note open'); return; }
+  const note = notes.find(n => n.id === activeId);
+  if (!note) return;
+
+  const title = note.title || 'Untitled Note';
+  const safeName = title.replace(/[^a-z0-9\-_\s]/gi, '').trim().replace(/\s+/g, '-') || 'note';
+
+  let content, filename, mimeType;
+
+  if (format === 'md') {
+    // Markdown: include title as H1 if set, then content
+    content = note.title ? `# ${note.title}\n\n${note.content}` : note.content;
+    filename = `${safeName}.md`;
+    mimeType = 'text/markdown';
+  } else {
+    // Plain text: strip markdown syntax
+    const raw = (note.title ? `${note.title}\n${'='.repeat(note.title.length)}\n\n` : '') + note.content;
+    content = raw
+      .replace(/#{1,6}\s+/g, '')       // headings
+      .replace(/\*\*(.*?)\*\*/g, '$1') // bold
+      .replace(/\*(.*?)\*/g, '$1')     // italic
+      .replace(/~~(.*?)~~/g, '$1')     // strikethrough
+      .replace(/`{1,3}(.*?)`{1,3}/gs, '$1') // code
+      .replace(/^\s*[-*+]\s+/gm, '• ') // bullets
+      .replace(/^\s*\d+\.\s+/gm, '')   // numbered
+      .replace(/^\s*>\s+/gm, '')       // blockquotes
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1'); // links
+    filename = `${safeName}.txt`;
+    mimeType = 'text/plain';
+  }
+
+  const blob = new Blob([content], { type: mimeType + ';charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  closeSaveMenu();
+  showToast(`Downloaded as ${filename}`);
+}
+
+// ── VIEW TOGGLE ──
+function setView(mode) {
+  viewMode = mode;
+  const panes = document.getElementById('editorPanes');
+  const mdToolbar = document.getElementById('mdToolbar');
+  panes.className = 'editor-panes mode-' + mode;
+  ['btnEdit','btnSplit','btnPreview'].forEach(id => {
+    document.getElementById(id).classList.remove('active');
+  });
+  document.getElementById('btn' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('active');
+  mdToolbar.style.display = mode === 'preview' ? 'none' : 'flex';
+}
+
+// ── DELETE ──
+function askDelete(e, id) {
+  e.stopPropagation();
+  deleteTarget = id;
+  document.getElementById('deleteModal').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('deleteModal').classList.remove('show');
+  deleteTarget = null;
+}
+function confirmDelete() {
+  if (!deleteTarget) return;
+  notes = notes.filter(n => n.id !== deleteTarget);
+  saveNotes(notes);
+  if (activeId === deleteTarget) {
+    activeId = null;
+    document.getElementById('noNote').style.display = 'flex';
+    document.getElementById('noteEditor').style.display = 'none';
+    if (notes.length > 0) openNote(notes[0].id);
+  }
+  closeModal();
+  renderList(document.getElementById('searchInput').value);
+  showToast('Note deleted');
+}
+
+// ── SEARCH ──
+function filterNotes(val) {
+  renderList(val);
+}
+
+// ── MARKDOWN TOOLBAR HELPERS ──
+function insertMd(before, after, placeholder) {
+  const ta = document.getElementById('mdEditor');
+  const start = ta.selectionStart, end = ta.selectionEnd;
+  const sel = ta.value.substring(start, end) || placeholder;
+  const newText = ta.value.substring(0,start) + before + sel + after + ta.value.substring(end);
+  ta.value = newText;
+  ta.setSelectionRange(start + before.length, start + before.length + sel.length);
+  ta.focus();
+  onEditorChange();
+}
+function insertLine(prefix, suffix) {
+  const ta = document.getElementById('mdEditor');
+  const start = ta.selectionStart;
+  const lineStart = ta.value.lastIndexOf('\n', start - 1) + 1;
+  if (suffix) {
+    const ins = '\n' + prefix + '\n' + suffix + '\n';
+    ta.value = ta.value.substring(0, start) + ins + ta.value.substring(start);
+    ta.setSelectionRange(start + prefix.length + 1, start + prefix.length + 1);
+  } else {
+    ta.value = ta.value.substring(0, lineStart) + prefix + ta.value.substring(lineStart);
+    ta.setSelectionRange(lineStart + prefix.length, lineStart + prefix.length);
+  }
+  ta.focus();
+  onEditorChange();
+}
+function handleTab(e) {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    insertMd('', '', '  ');
+  }
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ── KEYBOARD SHORTCUTS ──
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault(); saveNote();
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+    e.preventDefault(); newNote();
+  }
+});
+
+// Close modal on overlay click
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ── IMPORT .MD FILE ──
+function triggerImport() {
+  const input = document.getElementById('mdFileInput');
+  input.value = ''; // reset so same file can be re-imported
+  input.click();
+}
+
+function importMdFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const raw = e.target.result;
+
+    // Derive a clean title: strip extension, replace hyphens/underscores with spaces
+    const rawName = file.name.replace(/\.(md|markdown)$/i, '');
+    const title = rawName.replace(/[-_]+/g, ' ').trim();
+
+    // If the first line is a markdown H1, use it as the title instead
+    const firstLine = raw.split('\n')[0] || '';
+    const h1Match = firstLine.match(/^#\s+(.+)/);
+    const noteTitle = h1Match ? h1Match[1].trim() : (title || 'Imported Note');
+
+    // Content: keep full raw content so nothing is lost
+    const note = {
+      id: Date.now().toString(),
+      title: noteTitle,
+      content: raw,
+      created: new Date().toISOString(),
+      updated: new Date().toISOString()
+    };
+
+    notes.unshift(note);
+    saveNotes(notes);
+    renderList();
+    openNote(note.id);
+    showToast(`Imported "${noteTitle}"`);
+  };
+  reader.onerror = function() {
+    showToast('Failed to read file');
+  };
+  reader.readAsText(file);
+}
+
+init();
+</script>
+</body>
+</html>
