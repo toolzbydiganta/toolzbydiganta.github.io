@@ -3,287 +3,230 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>GeoTag Images</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/piexifjs/1.0.6/piexif.js"></script>
+<title>GeoTag Images - Toolz by Diganta</title>
+<link href="[https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap](https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap)" rel="stylesheet">
+<script src="[https://cdnjs.cloudflare.com/ajax/libs/piexifjs/1.0.6/piexif.js](https://cdnjs.cloudflare.com/ajax/libs/piexifjs/1.0.6/piexif.js)"></script>
 <style>
+  :root {
+    --primary: #f5a623; --primary-light: #ffd280; --primary-dark: #d4880a;
+    --primary-glow: rgba(245,166,35,0.15); --primary-soft: #fff8ec;
+    --white: #ffffff; --bg: #fffdf7; --border: #f0ddb0;
+    --text: #1a1208; --text-muted: #7a6030; --text-faint: #c9a84c;
+    --shadow: rgba(245,166,35,0.15); --radius: 16px;
+  }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: #f4f4f5;
-    min-height: 100vh;
-    display: flex; align-items: center; justify-content: center;
-    padding: 24px;
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+  
+  /* HEADER & FOOTER */
+  .tool-header { background: var(--white); border-bottom: 1px solid var(--border); padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .brand-link { 
+    font-size: 1.1rem; 
+    font-weight: 700; 
+    color: var(--text); 
+    text-decoration: none; 
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
+  .brand-link span { color: var(--primary); }
+  .header-logo { height: 28px; width: auto; object-fit: contain; }
+  .back-link { font-size: 0.82rem; font-weight: 600; color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+  .back-link:hover { color: var(--primary-dark); }
+  footer { border-top: 1px solid var(--border); background: var(--white); padding: 22px 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: auto; }
+  .footer-brand { font-size: 0.88rem; font-weight: 700; color: var(--text); }
+  .footer-brand span { color: var(--primary); }
+  .footer-copy { font-size: 0.71rem; color: var(--text-faint); }
+
+  /* MAIN APP */
+  .section { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 24px; }
   .card {
-    background: #fff; border-radius: 20px; padding: 40px 36px;
-    max-width: 460px; width: 100%;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 12px 32px rgba(0,0,0,0.05);
+    background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius);
+    max-width: 860px; width: 100%; box-shadow: 0 14px 38px var(--shadow);
+    display: grid; grid-template-columns: 1fr 1fr; overflow: hidden;
   }
-  .logo { font-size: 1.6rem; margin-bottom: 6px; }
-  h1 { font-size: 1.35rem; font-weight: 700; color: #111; letter-spacing: -0.3px; }
-  .sub { font-size: 0.83rem; color: #999; margin-top: 3px; margin-bottom: 30px; }
+
+  /* LEFT PANEL — image */
+  .panel-left {
+    padding: 36px 32px; border-right: 1.5px solid var(--border);
+    display: flex; flex-direction: column;
+  }
+
+  /* RIGHT PANEL — controls */
+  .panel-right {
+    padding: 36px 32px; display: flex; flex-direction: column;
+  }
+
+  .logo { display: inline-flex; width: 50px; height: 50px; border-radius: 12px; background: var(--primary-soft); border: 1.5px solid var(--primary-light); align-items: center; justify-content: center; font-size: 1.45rem; margin-bottom: 16px; }
+  h1 { font-size: 1.4rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .sub { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 30px; line-height: 1.6; }
 
   .drop-zone {
-    position: relative; border: 2px dashed #ddd; border-radius: 14px;
-    padding: 36px 20px; text-align: center; cursor: pointer;
-    transition: border-color 0.2s, background 0.2s; margin-bottom: 20px;
+    position: relative; border: 2px dashed var(--primary-light); border-radius: 14px;
+    padding: 36px 20px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 20px;
+    background: var(--white); flex: 1;
   }
-  .drop-zone:hover, .drop-zone.over { border-color: #111; background: #fafafa; }
+  .drop-zone:hover, .drop-zone.over { border-color: var(--primary); background: var(--primary-soft); }
   .drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
   .drop-icon { font-size: 2.2rem; margin-bottom: 10px; }
-  .drop-label { font-size: 0.9rem; color: #555; }
-  .drop-label b { color: #111; }
-  .drop-hint { font-size: 0.75rem; color: #bbb; margin-top: 5px; }
+  .drop-label { font-size: 0.9rem; color: var(--text-muted); }
+  .drop-label b { color: var(--primary-dark); font-weight: 700; }
+  .drop-hint { font-size: 0.75rem; color: var(--text-faint); margin-top: 5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
 
-  .preview-box { border-radius: 12px; overflow: hidden; border: 1px solid #eee; margin-bottom: 20px; display: none; }
-  .preview-box img { width: 100%; max-height: 190px; object-fit: cover; display: block; }
-  .preview-meta {
-    padding: 9px 14px; background: #fafafa;
-    font-size: 0.78rem; color: #777;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .remove-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 1rem; transition: color 0.15s; }
+  .preview-box { border-radius: 12px; overflow: hidden; border: 1.5px solid var(--border); margin-bottom: 0; display: none; flex: 1; flex-direction: column; }
+  .preview-box img { width: 100%; flex: 1; object-fit: cover; display: block; min-height: 0; max-height: 260px; }
+  .preview-meta { padding: 10px 14px; background: var(--primary-soft); font-size: 0.78rem; font-weight: 600; color: var(--primary-dark); display: flex; align-items: center; justify-content: space-between; }
+  .remove-btn { background: none; border: none; color: var(--primary); cursor: pointer; font-size: 1rem; transition: color 0.15s; font-weight: 700; }
   .remove-btn:hover { color: #e00; }
 
-  .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 22px; }
-  .field label { display: block; font-size: 0.78rem; font-weight: 600; color: #555; margin-bottom: 6px; letter-spacing: 0.3px; text-transform: uppercase; }
+  /* coord fields stacked vertically on right */
+  .fields { display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; }
+  .field label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; letter-spacing: 0.04em; text-transform: uppercase; }
   .field input {
-    width: 100%; padding: 10px 12px; border: 1.5px solid #e8e8e8;
-    border-radius: 9px; font-size: 0.92rem; color: #111; outline: none;
-    transition: border-color 0.2s; -moz-appearance: textfield;
+    width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.92rem; color: var(--text); outline: none; transition: border-color 0.2s;
   }
-  .field input:focus { border-color: #111; }
-  .field input::-webkit-outer-spin-button, .field input::-webkit-inner-spin-button { -webkit-appearance: none; }
-  .field .range-hint { font-size: 0.73rem; color: #bbb; margin-top: 4px; }
+  .field input:focus { border-color: var(--primary); }
+  .field .range-hint { font-size: 0.73rem; color: var(--text-faint); margin-top: 6px; font-weight: 500; }
 
   .btn {
-    width: 100%; padding: 13px; background: #111; color: #fff;
-    border: none; border-radius: 11px; font-size: 0.95rem; font-weight: 600;
-    cursor: pointer; transition: background 0.2s, transform 0.1s;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 14px; background: var(--primary); color: #fff;
+    border: none; border-radius: 50px; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 700;
+    cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;
   }
-  .btn:hover:not(:disabled) { background: #2a2a2a; }
-  .btn:active:not(:disabled) { transform: scale(0.99); }
-  .btn:disabled { background: #d0d0d0; cursor: not-allowed; }
+  .btn:hover:not(:disabled) { background: var(--primary-dark); transform: scale(1.02); }
+  .btn:disabled { background: var(--border); color: var(--text-faint); cursor: not-allowed; transform: none; }
 
-  .status { margin-top: 16px; padding: 12px 15px; border-radius: 9px; font-size: 0.83rem; line-height: 1.6; display: none; white-space: pre-line; }
-  .status.success { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+  .status { margin-top: 16px; padding: 12px 16px; border-radius: 10px; font-size: 0.83rem; font-weight: 500; line-height: 1.6; display: none; white-space: pre-line; }
+  .status.success { background: var(--primary-soft); color: var(--primary-dark); border: 1.5px solid var(--primary-light); }
   .status.error   { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
 
-  .spinner {
-    width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.35);
-    border-top-color: #fff; border-radius: 50%;
-    animation: spin 0.7s linear infinite; display: none;
-  }
+  .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
   @keyframes spin { to { transform: rotate(360deg); } }
   canvas { display: none; }
+
+  /* Responsive: stack on small screens */
+  @media (max-width: 640px) {
+    .card { grid-template-columns: 1fr; }
+    .panel-left { border-right: none; border-bottom: 1.5px solid var(--border); }
+  }
 </style>
 </head>
 <body>
-<div class="card">
-  <div class="logo">📍</div>
-  <h1>GeoTag Images</h1>
-  <p class="sub">Add coordinates into your image — Because Google Knows Where You Are.</p>
 
-  <div class="drop-zone" id="dropZone">
-    <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.webp" />
-    <div class="drop-icon">🖼️</div>
-    <div class="drop-label"><b>Click to upload</b> or drag & drop</div>
-    <div class="drop-hint">JPG · PNG · WebP</div>
-  </div>
+<header class="tool-header">
+  <a href="https://toolzbydiganta.github.io/" class="brand-link">
+    <img src="logo.png" alt="Toolz Logo" class="header-logo">
+    Toolz <span>by Diganta</span>
+  </a>
+  <a href="https://toolzbydiganta.github.io/" class="back-link">← Back to Tools</a>
+</header>
 
-  <div class="preview-box" id="previewBox">
-    <img id="previewImg" alt="Preview" />
-    <div class="preview-meta">
-      <span id="previewMeta"></span>
-      <button class="remove-btn" id="removeBtn" title="Remove">✕</button>
+<main class="section">
+  <div class="card">
+    <!-- LEFT: Upload & Preview -->
+    <div class="panel-left">
+      <div class="drop-zone" id="dropZone">
+        <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.webp" />
+        <div class="drop-icon">🖼️</div>
+        <div class="drop-label"><b>Click to upload</b> or drag & drop</div>
+        <div class="drop-hint">JPG · PNG · WebP</div>
+      </div>
+
+      <div class="preview-box" id="previewBox">
+        <img id="previewImg" alt="Preview" />
+        <div class="preview-meta">
+          <span id="previewMeta"></span>
+          <button class="remove-btn" id="removeBtn" title="Remove">✕</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Controls -->
+    <div class="panel-right">
+      <div class="logo">📍</div>
+      <h1>GeoTag Images</h1>
+      <p class="sub">Add coordinates into your image — Because Google Knows Where You Are.</p>
+
+      <div class="fields">
+        <div class="field">
+          <label>Latitude</label>
+          <input type="number" id="lat" placeholder="e.g. 21.7679" step="any" min="-90" max="90" />
+          <div class="range-hint">–90 to 90</div>
+        </div>
+        <div class="field">
+          <label>Longitude</label>
+          <input type="number" id="lng" placeholder="e.g. 87.7322" step="any" min="-180" max="180" />
+          <div class="range-hint">–180 to 180</div>
+        </div>
+      </div>
+
+      <button class="btn" id="processBtn" disabled>
+        <span class="spinner" id="spinner"></span>
+        <span id="btnLabel">Add GeoTag &amp; Download</span>
+      </button>
+      <div class="status" id="status"></div>
     </div>
   </div>
-
-  <div class="fields">
-    <div class="field">
-      <label>Latitude</label>
-      <input type="number" id="lat" placeholder="e.g. 21.7679" step="any" min="-90" max="90" />
-      <div class="range-hint">–90 to 90</div>
-    </div>
-    <div class="field">
-      <label>Longitude</label>
-      <input type="number" id="lng" placeholder="e.g. 87.7322" step="any" min="-180" max="180" />
-      <div class="range-hint">–180 to 180</div>
-    </div>
-  </div>
-
-  <button class="btn" id="processBtn" disabled>
-    <span class="spinner" id="spinner"></span>
-    <span id="btnLabel">Add GeoTag &amp; Download</span>
-  </button>
-  <div class="status" id="status"></div>
-</div>
+</main>
 <canvas id="canvas"></canvas>
 
+<footer>
+  <div class="footer-brand">Toolz <span>by Diganta</span></div>
+  <div class="footer-copy">Free tools, always. Made with ☕</div>
+</footer>
+
 <script>
-  const dropZone   = document.getElementById('dropZone');
-  const fileInput  = document.getElementById('fileInput');
-  const previewBox = document.getElementById('previewBox');
-  const previewImg = document.getElementById('previewImg');
-  const previewMeta= document.getElementById('previewMeta');
-  const removeBtn  = document.getElementById('removeBtn');
-  const processBtn = document.getElementById('processBtn');
-  const btnLabel   = document.getElementById('btnLabel');
-  const spinner    = document.getElementById('spinner');
-  const statusEl   = document.getElementById('status');
-  const canvas     = document.getElementById('canvas');
-  const ctx        = canvas.getContext('2d');
+  const dropZone   = document.getElementById('dropZone'); const fileInput  = document.getElementById('fileInput'); const previewBox = document.getElementById('previewBox'); const previewImg = document.getElementById('previewImg'); const previewMeta= document.getElementById('previewMeta'); const removeBtn  = document.getElementById('removeBtn'); const processBtn = document.getElementById('processBtn'); const btnLabel   = document.getElementById('btnLabel'); const spinner    = document.getElementById('spinner'); const statusEl   = document.getElementById('status'); const canvas     = document.getElementById('canvas'); const ctx        = canvas.getContext('2d');
+  let currentFile = null; let currentDataUrl = null;
 
-  let currentFile    = null;
-  let currentDataUrl = null; // store base64 data URL of loaded image
-
-  // ── Drag & Drop ──────────────────────────────────────────────
   dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('over'); });
   ['dragleave','dragend'].forEach(ev => dropZone.addEventListener(ev, () => dropZone.classList.remove('over')));
-  dropZone.addEventListener('drop', e => {
-    e.preventDefault(); dropZone.classList.remove('over');
-    const f = e.dataTransfer.files[0];
-    if (f) handleFile(f);
-  });
+  dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('over'); const f = e.dataTransfer.files[0]; if (f) handleFile(f); });
   fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
 
   function handleFile(file) {
     const allowed = ['image/jpeg','image/png','image/webp'];
     if (!allowed.includes(file.type)) return showStatus('error', '⚠️ Only JPG, PNG, or WebP images are supported.');
     if (file.size > 30 * 1024 * 1024) return showStatus('error', '⚠️ File too large. Please use an image under 30 MB.');
-
-    clearState();
-    currentFile = file;
-
-    // Use FileReader (base64) — works reliably in all sandboxed environments
+    clearState(); currentFile = file;
     const reader = new FileReader();
-    reader.onload = e => {
-      currentDataUrl = e.target.result;
-      previewImg.src = currentDataUrl;
-      previewBox.style.display = 'block';
-      previewMeta.textContent = `${file.name}  ·  ${(file.size/1024).toFixed(1)} KB`;
-      processBtn.disabled = false;
-      hideStatus();
-    };
+    reader.onload = e => { currentDataUrl = e.target.result; previewImg.src = currentDataUrl; previewBox.style.display = 'block'; previewMeta.textContent = `${file.name}  ·  ${(file.size/1024).toFixed(1)} KB`; processBtn.disabled = false; hideStatus(); };
     reader.onerror = () => showStatus('error', '⚠️ Could not read the file. Please try again.');
     reader.readAsDataURL(file);
   }
 
   removeBtn.addEventListener('click', () => { clearState(); hideStatus(); });
+  function clearState() { currentFile = null; currentDataUrl = null; previewImg.src = ''; previewBox.style.display = 'none'; fileInput.value = ''; processBtn.disabled = true; }
+  function toDMS(val) { const abs = Math.abs(val); const deg = Math.floor(abs); const minF = (abs - deg) * 60; const min = Math.floor(minF); const sec = Math.round((minF - min) * 6000); return [[deg,1],[min,1],[sec,100]]; }
+  function fmtCoord(lat, lng) { return `${Math.abs(lat).toFixed(6)}° ${lat>=0?'N':'S'},  ${Math.abs(lng).toFixed(6)}° ${lng>=0?'E':'W'}`; }
 
-  function clearState() {
-    currentFile = null;
-    currentDataUrl = null;
-    previewImg.src = '';
-    previewBox.style.display = 'none';
-    fileInput.value = '';
-    processBtn.disabled = true;
-  }
-
-  // ── GPS helpers ──────────────────────────────────────────────
-  function toDMS(val) {
-    const abs = Math.abs(val);
-    const deg = Math.floor(abs);
-    const minF = (abs - deg) * 60;
-    const min  = Math.floor(minF);
-    const sec  = Math.round((minF - min) * 6000);
-    return [[deg,1],[min,1],[sec,100]];
-  }
-
-  function fmtCoord(lat, lng) {
-    return `${Math.abs(lat).toFixed(6)}° ${lat>=0?'N':'S'},  ${Math.abs(lng).toFixed(6)}° ${lng>=0?'E':'W'}`;
-  }
-
-  // ── Process & Download ───────────────────────────────────────
   processBtn.addEventListener('click', () => {
-    const lat = parseFloat(document.getElementById('lat').value);
-    const lng = parseFloat(document.getElementById('lng').value);
-
-    if (!currentDataUrl)             return showStatus('error','⚠️ Please upload an image first.');
+    const lat = parseFloat(document.getElementById('lat').value); const lng = parseFloat(document.getElementById('lng').value);
+    if (!currentDataUrl) return showStatus('error','⚠️ Please upload an image first.');
     if (isNaN(lat)||lat<-90||lat>90) return showStatus('error','⚠️ Latitude must be between –90 and 90.');
     if (isNaN(lng)||lng<-180||lng>180) return showStatus('error','⚠️ Longitude must be between –180 and 180.');
-
-    setBusy(true);
-
-    // Load image from base64 dataURL — no blob URL needed
-    const img = new Image();
-
+    setBusy(true); const img = new Image();
     img.onload = () => {
       try {
-        canvas.width  = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0);
-
+        canvas.width = img.naturalWidth; canvas.height = img.naturalHeight; ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(img, 0, 0);
         const jpegDataUrl = canvas.toDataURL('image/jpeg', 0.95);
-
-        const exifObj = {
-          GPS: {
-            1: lat >= 0 ? 'N' : 'S',
-            2: toDMS(lat),
-            3: lng >= 0 ? 'E' : 'W',
-            4: toDMS(lng),
-            5: [0, 1],
-            6: [0, 1],
-          }
-        };
-
-        const exifBytes = piexif.dump(exifObj);
-        const taggedUrl = piexif.insert(exifBytes, jpegDataUrl);
-
-        // Convert base64 → Blob → download
-        const b64   = taggedUrl.split(',')[1];
-        const raw   = atob(b64);
-        const bytes = new Uint8Array(raw.length);
+        const exifObj = { GPS: { 1: lat >= 0 ? 'N' : 'S', 2: toDMS(lat), 3: lng >= 0 ? 'E' : 'W', 4: toDMS(lng), 5: [0, 1], 6: [0, 1] } };
+        const exifBytes = piexif.dump(exifObj); const taggedUrl = piexif.insert(exifBytes, jpegDataUrl);
+        const b64 = taggedUrl.split(',')[1]; const raw = atob(b64); const bytes = new Uint8Array(raw.length);
         for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
-        const blob  = new Blob([bytes], { type: 'image/jpeg' });
-
-        const blobUrl  = URL.createObjectURL(blob);
-        const a        = document.createElement('a');
+        const blob = new Blob([bytes], { type: 'image/jpeg' });
+        const blobUrl = URL.createObjectURL(blob); const a = document.createElement('a');
         const baseName = currentFile ? currentFile.name.replace(/\.[^/.]+$/,'') : 'image';
-        a.href     = blobUrl;
-        a.download = `${baseName}.jpg`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-
-        // Cleanup
-        setTimeout(() => {
-          URL.revokeObjectURL(blobUrl);
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          clearState();
-          setBusy(false);
-          showStatus('success',
-            `✅ GeoTag embedded & image downloaded!\n📌 ${fmtCoord(lat, lng)}\n\nAll image data has been cleared from your browser.`
-          );
-        }, 500);
-
-      } catch (err) {
-        console.error(err);
-        setBusy(false);
-        showStatus('error', '⚠️ Failed to embed GeoTag. Try a different image or format.');
-      }
+        a.href = blobUrl; a.download = `${baseName}.jpg`; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(() => { URL.revokeObjectURL(blobUrl); ctx.clearRect(0, 0, canvas.width, canvas.height); clearState(); setBusy(false); showStatus('success', `✅ GeoTag embedded & image downloaded!\n📌 ${fmtCoord(lat, lng)}\n\nAll image data has been cleared from your browser.`); }, 500);
+      } catch (err) { console.error(err); setBusy(false); showStatus('error', '⚠️ Failed to embed GeoTag. Try a different image or format.'); }
     };
-
-    img.onerror = () => {
-      setBusy(false);
-      showStatus('error', '⚠️ Could not load the image. Please try again.');
-    };
-
-    img.src = currentDataUrl; // ✅ use base64 — reliable in all environments
+    img.onerror = () => { setBusy(false); showStatus('error', '⚠️ Could not load the image. Please try again.'); };
+    img.src = currentDataUrl;
   });
 
-  function setBusy(on) {
-    processBtn.disabled  = on;
-    spinner.style.display = on ? 'block' : 'none';
-    btnLabel.textContent  = on ? 'Processing…' : 'Add GeoTag & Download';
-  }
-  function showStatus(type, msg) {
-    statusEl.className = `status ${type}`;
-    statusEl.textContent = msg;
-    statusEl.style.display = 'block';
-  }
+  function setBusy(on) { processBtn.disabled = on; spinner.style.display = on ? 'block' : 'none'; btnLabel.textContent = on ? 'Processing…' : 'Add GeoTag & Download'; }
+  function showStatus(type, msg) { statusEl.className = `status ${type}`; statusEl.textContent = msg; statusEl.style.display = 'block'; }
   function hideStatus() { statusEl.style.display = 'none'; }
 </script>
 </body>
