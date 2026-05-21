@@ -4,8 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>GeoTag Images - Toolz by Diganta</title>
-<link href="[https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap](https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap)" rel="stylesheet">
-<script src="[https://cdnjs.cloudflare.com/ajax/libs/piexifjs/1.0.6/piexif.js](https://cdnjs.cloudflare.com/ajax/libs/piexifjs/1.0.6/piexif.js)"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/piexifjs/1.0.6/piexif.js"></script>
 <style>
   :root {
     --primary: #f5a623; --primary-light: #ffd280; --primary-dark: #d4880a;
@@ -99,6 +99,7 @@
   .status { margin-top: 16px; padding: 12px 16px; border-radius: 10px; font-size: 0.83rem; font-weight: 500; line-height: 1.6; display: none; white-space: pre-line; }
   .status.success { background: var(--primary-soft); color: var(--primary-dark); border: 1.5px solid var(--primary-light); }
   .status.error   { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+  .status.info    { background: #eff6ff; color: #1d4ed8; border: 1.5px solid #bfdbfe; }
 
   .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -145,7 +146,7 @@
     <div class="panel-right">
       <div class="logo">📍</div>
       <h1>GeoTag Images</h1>
-      <p class="sub">Add coordinates into your image — Because Google Knows Where You Are.</p>
+      <p class="sub">Add GPS coordinates into your image metadata instantly inside your browser.</p>
 
       <div class="fields">
         <div class="field">
@@ -176,7 +177,20 @@
 </footer>
 
 <script>
-  const dropZone   = document.getElementById('dropZone'); const fileInput  = document.getElementById('fileInput'); const previewBox = document.getElementById('previewBox'); const previewImg = document.getElementById('previewImg'); const previewMeta= document.getElementById('previewMeta'); const removeBtn  = document.getElementById('removeBtn'); const processBtn = document.getElementById('processBtn'); const btnLabel   = document.getElementById('btnLabel'); const spinner    = document.getElementById('spinner'); const statusEl   = document.getElementById('status'); const canvas     = document.getElementById('canvas'); const ctx        = canvas.getContext('2d');
+  const dropZone   = document.getElementById('dropZone');
+  const fileInput  = document.getElementById('fileInput');
+  const previewBox = document.getElementById('previewBox');
+  const previewImg = document.getElementById('previewImg');
+  const previewMeta= document.getElementById('previewMeta');
+  const removeBtn  = document.getElementById('removeBtn');
+  const processBtn = document.getElementById('processBtn');
+  const btnLabel   = document.getElementById('btnLabel');
+  const spinner    = document.getElementById('spinner');
+  const statusEl   = document.getElementById('status');
+  const canvas     = document.getElementById('canvas');
+  const ctx        = canvas.getContext('2d');
+  const latInput   = document.getElementById('lat');
+  const lngInput   = document.getElementById('lng');
   let currentFile = null; let currentDataUrl = null;
 
   dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('over'); });
@@ -184,42 +198,143 @@
   dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('over'); const f = e.dataTransfer.files[0]; if (f) handleFile(f); });
   fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
 
+  function dmsToDecimal(dms, ref) {
+    if (!dms || dms.length < 3) return null;
+    const deg = dms[0][0] / dms[0][1];
+    const min = dms[1][0] / dms[1][1];
+    const sec = dms[2][0] / dms[2][1];
+    let val = deg + min / 60 + sec / 3600;
+    if (ref === 'S' || ref === 'W') val = -val;
+    return parseFloat(val.toFixed(8));
+  }
+
+  function readExistingGPS(dataUrl) {
+    try {
+      // piexifjs can only read from JPEG data URLs
+      if (!dataUrl.startsWith('data:image/jpeg')) return null;
+      const exifData = piexif.load(dataUrl);
+      const gps = exifData['GPS'];
+      if (!gps || !gps[2] || !gps[4]) return null;
+      const lat = dmsToDecimal(gps[2], gps[1]);
+      const lng = dmsToDecimal(gps[4], gps[3]);
+      if (lat === null || lng === null || isNaN(lat) || isNaN(lng)) return null;
+      return { lat, lng };
+    } catch(e) {
+      return null;
+    }
+  }
+
   function handleFile(file) {
     const allowed = ['image/jpeg','image/png','image/webp'];
     if (!allowed.includes(file.type)) return showStatus('error', '⚠️ Only JPG, PNG, or WebP images are supported.');
     if (file.size > 30 * 1024 * 1024) return showStatus('error', '⚠️ File too large. Please use an image under 30 MB.');
     clearState(); currentFile = file;
     const reader = new FileReader();
-    reader.onload = e => { currentDataUrl = e.target.result; previewImg.src = currentDataUrl; previewBox.style.display = 'block'; previewMeta.textContent = `${file.name}  ·  ${(file.size/1024).toFixed(1)} KB`; processBtn.disabled = false; hideStatus(); };
+    reader.onload = e => {
+      currentDataUrl = e.target.result;
+      previewImg.src = currentDataUrl;
+      previewBox.style.display = 'flex';
+      previewMeta.textContent = `${file.name}  ·  ${(file.size/1024).toFixed(1)} KB`;
+      processBtn.disabled = false;
+
+      // Check for existing GPS
+      const existing = readExistingGPS(currentDataUrl);
+      if (existing) {
+        latInput.value = existing.lat;
+        lngInput.value = existing.lng;
+        showStatus('info', `📍 GeoTag found in this image!\nLat: ${existing.lat}°  Lng: ${existing.lng}°\n\nYou can overwrite it with new coordinates below.`);
+      } else {
+        hideStatus();
+      }
+    };
     reader.onerror = () => showStatus('error', '⚠️ Could not read the file. Please try again.');
     reader.readAsDataURL(file);
   }
 
   removeBtn.addEventListener('click', () => { clearState(); hideStatus(); });
-  function clearState() { currentFile = null; currentDataUrl = null; previewImg.src = ''; previewBox.style.display = 'none'; fileInput.value = ''; processBtn.disabled = true; }
-  function toDMS(val) { const abs = Math.abs(val); const deg = Math.floor(abs); const minF = (abs - deg) * 60; const min = Math.floor(minF); const sec = Math.round((minF - min) * 6000); return [[deg,1],[min,1],[sec,100]]; }
-  function fmtCoord(lat, lng) { return `${Math.abs(lat).toFixed(6)}° ${lat>=0?'N':'S'},  ${Math.abs(lng).toFixed(6)}° ${lng>=0?'E':'W'}`; }
+  function clearState() {
+    currentFile = null; currentDataUrl = null;
+    previewImg.src = ''; previewBox.style.display = 'none';
+    fileInput.value = ''; processBtn.disabled = true;
+    latInput.value = ''; lngInput.value = '';
+  }
+
+  function toGPSCoord(val) {
+    const abs = Math.abs(val);
+    const deg = Math.floor(abs);
+    const minF = (abs - deg) * 60;
+    const min = Math.floor(minF);
+    const secF = (minF - min) * 60;
+    const secNum = Math.round(secF * 1000000);
+    return [[deg, 1], [min, 1], [secNum, 1000000]];
+  }
+
+  function fmtCoord(lat, lng) {
+    return `${Math.abs(lat).toFixed(6)}° ${lat>=0?'N':'S'},  ${Math.abs(lng).toFixed(6)}° ${lng>=0?'E':'W'}`;
+  }
 
   processBtn.addEventListener('click', () => {
-    const lat = parseFloat(document.getElementById('lat').value); const lng = parseFloat(document.getElementById('lng').value);
+    const lat = parseFloat(latInput.value);
+    const lng = parseFloat(lngInput.value);
     if (!currentDataUrl) return showStatus('error','⚠️ Please upload an image first.');
     if (isNaN(lat)||lat<-90||lat>90) return showStatus('error','⚠️ Latitude must be between –90 and 90.');
     if (isNaN(lng)||lng<-180||lng>180) return showStatus('error','⚠️ Longitude must be between –180 and 180.');
-    setBusy(true); const img = new Image();
+    setBusy(true);
+
+    const img = new Image();
     img.onload = () => {
       try {
-        canvas.width = img.naturalWidth; canvas.height = img.naturalHeight; ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(img, 0, 0);
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
         const jpegDataUrl = canvas.toDataURL('image/jpeg', 0.95);
-        const exifObj = { GPS: { 1: lat >= 0 ? 'N' : 'S', 2: toDMS(lat), 3: lng >= 0 ? 'E' : 'W', 4: toDMS(lng), 5: [0, 1], 6: [0, 1] } };
-        const exifBytes = piexif.dump(exifObj); const taggedUrl = piexif.insert(exifBytes, jpegDataUrl);
-        const b64 = taggedUrl.split(',')[1]; const raw = atob(b64); const bytes = new Uint8Array(raw.length);
+
+        const exifObj = {
+          "0th": {},
+          "Exif": {},
+          "GPS": {
+            1: lat >= 0 ? 'N' : 'S',
+            2: toGPSCoord(lat),
+            3: lng >= 0 ? 'E' : 'W',
+            4: toGPSCoord(lng),
+            5: [0, 1],
+            6: [0, 1]
+          },
+          "1st": {},
+          "thumbnail": null
+        };
+
+        const exifBytes = piexif.dump(exifObj);
+        const taggedUrl = piexif.insert(exifBytes, jpegDataUrl);
+
+        const b64 = taggedUrl.split(',')[1];
+        const raw = atob(b64);
+        const bytes = new Uint8Array(raw.length);
         for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
         const blob = new Blob([bytes], { type: 'image/jpeg' });
-        const blobUrl = URL.createObjectURL(blob); const a = document.createElement('a');
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
         const baseName = currentFile ? currentFile.name.replace(/\.[^/.]+$/,'') : 'image';
-        a.href = blobUrl; a.download = `${baseName}.jpg`; document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        setTimeout(() => { URL.revokeObjectURL(blobUrl); ctx.clearRect(0, 0, canvas.width, canvas.height); clearState(); setBusy(false); showStatus('success', `✅ GeoTag embedded & image downloaded!\n📌 ${fmtCoord(lat, lng)}\n\nAll image data has been cleared from your browser.`); }, 500);
-      } catch (err) { console.error(err); setBusy(false); showStatus('error', '⚠️ Failed to embed GeoTag. Try a different image or format.'); }
+        a.href = blobUrl;
+        a.download = `${baseName}.jpg`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        setTimeout(() => {
+          URL.revokeObjectURL(blobUrl);
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          clearState();
+          setBusy(false);
+          showStatus('success', `✅ GeoTag embedded & image downloaded!\n📌 ${fmtCoord(lat, lng)}\n\nAll image data has been cleared from your browser.`);
+        }, 500);
+
+      } catch (err) {
+        console.error('GeoTag error:', err);
+        setBusy(false);
+        showStatus('error', '⚠️ Failed to embed GeoTag: ' + err.message);
+      }
     };
     img.onerror = () => { setBusy(false); showStatus('error', '⚠️ Could not load the image. Please try again.'); };
     img.src = currentDataUrl;
