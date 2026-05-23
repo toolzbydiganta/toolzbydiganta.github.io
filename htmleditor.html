@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML Editor — Toolz by Diganta</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/eclipse.min.css">
+<style>
+:root {
+  --primary: #f5a623;
+  --primary-light: #ffd280;
+  --primary-dark: #d4880a;
+  --primary-glow: rgba(245,166,35,0.15);
+  --primary-soft: #fff8ec;
+  --white: #ffffff;
+  --bg: #fffdf7;
+  --border: #f0ddb0;
+  --text: #1a1208;
+  --text-muted: #7a6030;
+  --text-faint: #c9a84c;
+  --shadow: rgba(245,166,35,0.15);
+  --header-h: 65px; /* Adjusted to perfectly clear padding boundaries */
+  --toolbar-h: 48px;
+  --statusbar-h: 28px;
+  --footer-h: 62px; /* Adjusted to fit the matching padded footer layout */
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* ── COPIED STICKY HEADER STYLES (from geotag.html) ── */
+.tool-header { 
+  background: var(--white); 
+  border-bottom: 1px solid var(--border); 
+  padding: 16px 28px; 
+  height: var(--header-h);
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between; 
+  position: sticky; 
+  top: 0; 
+  z-index: 100; 
+  flex-shrink: 0;
+}
+.brand-link { 
+  font-size: 1.1rem; 
+  font-weight: 700; 
+  color: var(--text); 
+  text-decoration: none; 
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.brand-link span { color: var(--primary); }
+.header-logo { height: 28px; width: auto; object-fit: contain; }
+.back-link { font-size: 0.82rem; font-weight: 600; color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+.back-link:hover { color: var(--primary-dark); }
+
+/* ── TOOLBAR ── */
+.editor-toolbar {
+  height: var(--toolbar-h);
+  flex-shrink: 0;
+  display: flex; align-items: center;
+  background: var(--white);
+  border-bottom: 1.5px solid var(--border);
+}
+.toolbar-half {
+  flex: 1; display: flex; align-items: center;
+  gap: 3px; padding: 0 14px; height: 100%;
+}
+.toolbar-sep { width: 1.5px; height: 100%; background: var(--border); flex-shrink: 0; }
+.tb-spacer { flex: 1; }
+
+.tb-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 11px; border-radius: 7px;
+  border: 1.5px solid transparent;
+  background: none;
+  font-family: 'DM Sans', sans-serif; font-size: 0.74rem; font-weight: 600;
+  color: var(--text-muted); cursor: pointer;
+  transition: all 0.15s; white-space: nowrap; flex-shrink: 0;
+}
+.tb-btn:hover { background: var(--primary-soft); border-color: var(--border); color: var(--text); }
+.tb-btn.danger:hover { background: #fff0f0; border-color: #ffc9c9; color: #c0392b; }
+.tb-btn.success { color: #1a6e3a; }
+.tb-btn.success:hover { background: #f0fdf4; border-color: #bbf7d0; color: #15803d; }
+.tb-vdivider { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; margin: 0 3px; }
+.sb-filename {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.67rem; color: var(--text-muted); font-weight: 500;
+  max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.tb-cursor-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.66rem; font-weight: 500;
+  color: var(--text-faint);
+  background: var(--primary-soft);
+  border: 1px solid var(--border);
+  padding: 3px 9px; border-radius: 50px;
+  white-space: nowrap; flex-shrink: 0;
+}
+
+/* ── VIEW TOGGLE ── */
+.view-toggle {
+  display: flex; align-items: center;
+  background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: 8px; padding: 2px; gap: 2px; flex-shrink: 0;
+}
+.vt-btn {
+  padding: 4px 12px; border-radius: 5px; border: none;
+  background: none; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; font-size: 0.73rem; font-weight: 600;
+  color: var(--text-muted); transition: all 0.15s;
+  display: flex; align-items: center; gap: 4px; white-space: nowrap;
+}
+.vt-btn.active {
+  background: var(--white);
+  color: var(--text);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+/* ── FULL PREVIEW BUTTON ── */
+.btn-full-preview {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 13px; border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  font-family: 'DM Sans', sans-serif; font-size: 0.74rem; font-weight: 600;
+  color: var(--text-muted); cursor: pointer;
+  transition: all 0.18s; flex-shrink: 0;
+}
+.btn-full-preview:hover {
+  background: var(--primary); border-color: var(--primary);
+  color: #fff; transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--shadow);
+}
+
+/* ── EDITOR MAIN ── */
+.editor-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── LEFT: EDITOR PANEL ── */
+.editor-panel {
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  border-right: 1.5px solid var(--border);
+  background: #fefdf9;
+}
+.editor-cm-wrap { flex: 1; overflow: hidden; min-height: 0; }
+
+/* CodeMirror Overrides */
+.CodeMirror {
+  height: 100% !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 13px !important;
+  line-height: 1.7 !important;
+  background: #fefdf9 !important;
+}
+.CodeMirror-scroll { min-height: 100%; }
+.CodeMirror-gutters {
+  background: #f7f3e8 !important;
+  border-right: 1.5px solid var(--border) !important;
+  padding-right: 4px !important;
+  min-width: 44px;
+}
+.CodeMirror-linenumber { color: var(--text-faint) !important; font-size: 11px !important; }
+.CodeMirror-cursor { border-left: 2.5px solid var(--primary) !important; }
+.CodeMirror-activeline-background { background: rgba(245,166,35,0.05) !important; }
+.CodeMirror-selected { background: rgba(245,166,35,0.18) !important; }
+.CodeMirror-focused .CodeMirror-selected { background: rgba(245,166,35,0.22) !important; }
+/* Tag highlight on click-from-preview */
+.cm-highlighted-line { background: rgba(245,166,35,0.28) !important; }
+/* Eclipse theme color adjustments */
+.cm-s-eclipse .cm-tag { color: #c0581a !important; }
+.cm-s-eclipse .cm-attribute { color: #7a6030 !important; }
+.cm-s-eclipse .cm-string { color: #2e7d52 !important; }
+.cm-s-eclipse .cm-comment { color: #c9a84c !important; font-style: italic; }
+.cm-s-eclipse .cm-qualifier { color: var(--primary-dark) !important; }
+
+/* Status bar */
+.editor-statusbar {
+  height: var(--statusbar-h);
+  flex-shrink: 0;
+  background: #f7f3e8;
+  border-top: 1.5px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 12px; gap: 10px;
+  font-size: 0.67rem; color: var(--text-faint);
+  font-family: 'JetBrains Mono', monospace;
+}
+.sb-item { white-space: nowrap; }
+.sb-sep { width: 1px; height: 11px; background: var(--border); flex-shrink: 0; }
+.sb-tip {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.67rem; font-weight: 600;
+  color: var(--primary-dark);
+  background: var(--primary-soft);
+  border: 1px solid var(--primary-light);
+  padding: 1px 8px; border-radius: 50px;
+  white-space: nowrap; margin-left: 4px;
+}
+
+/* ── RIGHT: PREVIEW PANEL ── */
+.preview-panel {
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  background: #e4d9c5;
+}
+
+/* Preview viewport */
+.preview-viewport {
+  flex: 1; overflow: hidden; position: relative;
+  display: flex; align-items: stretch;
+}
+.preview-viewport iframe {
+  flex: 1; border: none; background: #fff;
+}
+
+/* Mobile view */
+.preview-viewport.is-mobile {
+  align-items: center; justify-content: center;
+  background: #cfc0a0;
+  padding: 14px;
+}
+.preview-viewport.is-mobile iframe {
+  flex: none;
+  width: 390px;
+  height: 100%;
+  max-height: 820px;
+  border-radius: 40px;
+  box-shadow:
+    0 0 0 10px #1a1208,
+    0 0 0 12px #2e2010,
+    0 28px 70px rgba(0,0,0,0.5);
+}
+
+/* Click hint bar */
+.click-hint-bar {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 20;
+  background: var(--primary);
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem; font-weight: 600;
+  text-align: center; padding: 6px 8px;
+  pointer-events: none;
+  opacity: 0; transform: translateY(-100%);
+  transition: opacity 0.25s, transform 0.25s;
+  letter-spacing: 0.03em;
+}
+.click-hint-bar.show { opacity: 1; transform: translateY(0); }
+
+/* ── COPIED FOOTER STYLES (from geotag.html) ── */
+footer { 
+  border-top: 1px solid var(--border); 
+  background: var(--white); 
+  padding: 22px 40px; 
+  height: var(--footer-h);
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between; 
+  flex-wrap: wrap; 
+  gap: 10px; 
+  margin-top: auto; 
+  flex-shrink: 0;
+}
+.footer-brand { font-size: 0.88rem; font-weight: 700; color: var(--text); }
+.footer-brand span { color: var(--primary); }
+.footer-copy { font-size: 0.71rem; color: var(--text-faint); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 76px; left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: #1a1208; color: #fff;
+  padding: 8px 18px; border-radius: 50px;
+  font-size: 0.76rem; font-weight: 500;
+  opacity: 0; transition: opacity 0.2s, transform 0.22s;
+  z-index: 9999; pointer-events: none; white-space: nowrap;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.22);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 680px) {
+  .editor-main { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+  .editor-panel { border-right: none; border-bottom: 1.5px solid var(--border); }
+  .tool-header { padding: 16px 20px; }
+  .toolbar-half { padding: 0 8px; gap: 2px; }
+  footer { padding: 16px 20px; }
+  .tb-btn span { display: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="tool-header">
+  <a href="https://toolzbydiganta.github.io/" class="brand-link">
+    <img src="logo.png" alt="Toolz Logo" class="header-logo">
+    Toolz <span>by Diganta</span>
+  </a>
+  <a href="https://toolzbydiganta.github.io/" class="back-link">← Back to Tools</a>
+</header>
+
+<div class="editor-toolbar">
+
+  <div class="toolbar-half">
+
+    <button class="tb-btn" id="btnFormat" title="Auto-format HTML (Ctrl+Shift+F)">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="10" y2="8"/><line x1="2" y1="12" x2="12" y2="12"/></svg>
+      <span>Format</span>
+    </button>
+
+    <button class="tb-btn" id="btnCopy" title="Copy all code">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/></svg>
+      <span>Copy</span>
+    </button>
+
+    <button class="tb-btn" id="btnPaste" title="Paste from clipboard">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="9" height="10" rx="1.5"/><path d="M6 4V3a1 1 0 011-1h2a1 1 0 011 1v1"/></svg>
+      <span>Paste</span>
+    </button>
+
+    <button class="tb-btn danger" id="btnClear" title="Clear editor">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M3 13L13 3"/></svg>
+      <span>Clear</span>
+    </button>
+
+    <div class="tb-vdivider"></div>
+
+    <button class="tb-btn" id="btnImport" title="Import HTML file">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12v2h12v-2"/><line x1="8" y1="2" x2="8" y2="11"/><polyline points="4,7 8,11 12,7"/></svg>
+      <span>Import</span>
+    </button>
+
+    <button class="tb-btn success" id="btnSave" title="Save HTML file (Ctrl+S)">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 13H3a1 1 0 01-1-1V3l3-1h7l2 2v8a1 1 0 01-1 1z"/><rect x="5" y="9" width="6" height="5"/><rect x="5" y="2" width="5" height="3"/></svg>
+      <span>Save</span>
+    </button>
+
+    <div class="tb-spacer"></div>
+    <span class="tb-cursor-tag" id="cursorTag">Ln 1 · Col 1</span>
+  </div>
+
+  <div class="toolbar-sep"></div>
+
+  <div class="toolbar-half">
+    <div class="view-toggle">
+      <button class="vt-btn active" id="btnDesktop">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="2" width="14" height="10" rx="1.5"/><line x1="5" y1="14" x2="11" y2="14"/><line x1="8" y1="12" x2="8" y2="14"/></svg>
+        Desktop
+      </button>
+      <button class="vt-btn" id="btnMobile">
+        <svg width="10" height="13" viewBox="0 0 11 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="1" width="9" height="14" rx="2"/><circle cx="5.5" cy="13" r="0.5" fill="currentColor"/></svg>
+        Mobile
+      </button>
+    </div>
+    <div class="tb-spacer"></div>
+    <button class="btn-full-preview" id="btnFullPreview">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><polyline points="10,2 14,2 14,6"/><line x1="8.5" y1="7.5" x2="14" y2="2"/></svg>
+      Full Preview
+    </button>
+  </div>
+</div>
+
+<div class="editor-main">
+
+  <div class="editor-panel">
+    <div class="editor-cm-wrap">
+      <textarea id="codeEditor"></textarea>
+    </div>
+    <div class="editor-statusbar">
+      <span class="sb-item" id="sbCursor">Ln 1, Col 1</span>
+      <span class="sb-sep"></span>
+      <span class="sb-item" id="sbLines">1 line</span>
+      <span class="sb-sep"></span>
+      <span class="sb-item" id="sbChars">0 chars</span>
+      <span class="sb-sep"></span>
+      <span class="sb-item">HTML</span>
+      <span class="sb-sep"></span>
+      <span class="sb-filename" id="sbFilename">untitled.html</span>
+      <div class="tb-spacer"></div>
+      <span class="sb-tip" id="sbTip" style="display:none">✦ Click preview → jumps here</span>
+    </div>
+  </div>
+
+  <div class="preview-panel">
+    <div class="preview-viewport" id="previewViewport">
+      <div class="click-hint-bar" id="clickHint">✦ Click any element in the preview to highlight its code in the editor</div>
+      <iframe id="previewFrame"></iframe>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-brand">Toolz <span>by Diganta</span></div>
+  <div class="footer-copy">Free tools, always. Made with ☕</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<input type="file" id="importInput" accept=".html,.htm" style="display:none">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closetag.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify-html.min.js"></script>
+
+<script>
+/* ═══════════════════════════════════════════
+   DEFAULT HTML CONTENT
+═══════════════════════════════════════════ */
+const DEFAULT_HTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Page</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #fffdf7;
+      color: #1a1208;
+      padding: 40px 24px;
+    }
+    h1 { font-size: 2rem; color: #f5a623; margin-bottom: 12px; }
+    p  { color: #7a6030; line-height: 1.7; margin-bottom: 16px; }
+    .card {
+      background: #fff;
+      border: 1.5px solid #f0ddb0;
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 560px;
+      box-shadow: 0 4px 20px rgba(245,166,35,0.12);
+    }
+    .tip {
+      background: #fff8ec;
+      border-left: 3px solid #f5a623;
+      padding: 12px 16px;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.9rem;
+      margin-top: 16px;
+      color: #7a6030;
+    }
+    .btn {
+      display: inline-block;
+      background: #f5a623;
+      color: #fff;
+      padding: 10px 24px;
+      border-radius: 50px;
+      font-weight: 600;
+      text-decoration: none;
+      margin-top: 18px;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #d4880a; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Hello World 👋</h1>
+    <p>
+      Edit the HTML on the left — the preview
+      updates live as you type.
+    </p>
+    <div class="tip">
+      💡 <strong>Tip:</strong> Click any element in the
+      preview panel to jump straight to its code.
+    </div>
+    <a href="#" class="btn">Click me ✨</a>
+  </div>
+</body>
+</html>`;
+
+/* ═══════════════════════════════════════════
+   INIT CODEMIRROR
+═══════════════════════════════════════════ */
+const editor = CodeMirror.fromTextArea(
+  document.getElementById('codeEditor'), {
+    mode: 'htmlmixed',
+    theme: 'eclipse',
+    lineNumbers: true,
+    styleActiveLine: true,
+    matchBrackets: true,
+    autoCloseTags: true,
+    lineWrapping: false,
+    tabSize: 2,
+    indentWithTabs: false,
+    extraKeys: {
+      'Tab': cm => cm.execCommand('indentMore'),
+      'Shift-Tab': cm => cm.execCommand('indentLess'),
+      'Ctrl-Shift-F': () => formatHTML(),
+      'Cmd-Shift-F':  () => formatHTML(),
+    }
+  }
+);
+editor.setValue(DEFAULT_HTML);
+setTimeout(() => editor.refresh(), 100);
+
+/* ═══════════════════════════════════════════
+   ELEMENT REFS
+═══════════════════════════════════════════ */
+const previewFrame    = document.getElementById('previewFrame');
+const previewViewport = document.getElementById('previewViewport');
+const cursorTag       = document.getElementById('cursorTag');
+const sbCursor        = document.getElementById('sbCursor');
+const sbLines         = document.getElementById('sbLines');
+const sbChars         = document.getElementById('sbChars');
+const sbTip           = document.getElementById('sbTip');
+const clickHint       = document.getElementById('clickHint');
+const toastEl         = document.getElementById('toast');
+
+let isMobile       = false;
+let hlTimeout      = null;
+let hlLines        = [];
+let tipShown       = false;
+let previewTimer   = null;
+let toastTimer     = null;
+
+/* ═══════════════════════════════════════════
+   ANNOTATE HTML WITH LINE NUMBERS
+   Adds data-toolz-line="N" to every opening tag
+═══════════════════════════════════════════ */
+function annotateHTML(html) {
+  const lines = html.split('\n');
+  return lines.map((line, i) => {
+    return line.replace(
+      /<([a-zA-Z][a-zA-Z0-9-]*)(\s|\/?>)/g,
+      (m, tag, after) => `<${tag} data-tz="${i + 1}"${after}`
+    );
+  }).join('\n');
+}
+
+/* ═══════════════════════════════════════════
+   BUILD PREVIEW HTML
+   Annotates + injects click/hover listener
+═══════════════════════════════════════════ */
+function buildPreviewHTML(raw) {
+  const annotated = annotateHTML(raw);
+  const injectScript = `<scri` + `pt>
+(function(){
+  var _prev = null;
+  function findEl(el) {
+    while (el && el.tagName !== 'HTML') {
+      if (el.dataset && el.dataset.tz) return el;
+      el = el.parentElement;
+    }
+    return null;
+  }
+  /* Hover outline */
+  document.addEventListener('mouseover', function(e) {
+    var t = findEl(e.target);
+    if (_prev && _prev !== t) {
+      _prev.style.outline = '';
+      _prev.style.outlineOffset = '';
+      _prev.style.cursor = '';
+    }
+    if (t) {
+      t.style.outline = '2px solid rgba(245,166,35,0.85)';
+      t.style.outlineOffset = '2px';
+      t.style.cursor = 'crosshair';
+      _prev = t;
+    }
+  }, true);
+  document.addEventListener('mouseout', function(e) {
+    var t = findEl(e.target);
+    if (t) {
+      t.style.outline = '';
+      t.style.outlineOffset = '';
+      t.style.cursor = '';
+    }
+  }, true);
+  /* Click → postMessage to parent */
+  document.addEventListener('click', function(e) {
+    var t = findEl(e.target);
+    if (!t) return;
+    window.parent.postMessage({
+      type: 'tz-click',
+      line: parseInt(t.dataset.tz),
+      tag:  t.tagName.toLowerCase(),
+      id:   t.id || '',
+      cls:  (t.className || '').toString().split(' ').filter(Boolean)[0] || ''
+    }, '*');
+  }, true);
+})();
+</scri` + `pt>`;
+
+  if (annotated.includes('</body>')) {
+    return annotated.replace('</body>', injectScript + '\n</body>');
+  }
+  return annotated + injectScript;
+}
+
+/* ═══════════════════════════════════════════
+   UPDATE PREVIEW (debounced)
+═══════════════════════════════════════════ */
+function schedulePreview() {
+  clearTimeout(previewTimer);
+  previewTimer = setTimeout(updatePreview, 320);
+}
+
+function updatePreview() {
+  try {
+    previewFrame.srcdoc = buildPreviewHTML(editor.getValue());
+  } catch(e) {
+    console.warn('Preview update failed:', e);
+  }
+}
+
+editor.on('change', schedulePreview);
+updatePreview();  // initial render
+
+/* ═══════════════════════════════════════════
+   STATUS BAR + CURSOR INFO
+═══════════════════════════════════════════ */
+function updateStatus() {
+  const cur   = editor.getCursor();
+  const ln    = cur.line + 1;
+  const col   = cur.ch + 1;
+  const lines = editor.lineCount();
+  const chars = editor.getValue().length;
+  cursorTag.textContent = `Ln ${ln} · Col ${col}`;
+  sbCursor.textContent  = `Ln ${ln}, Col ${col}`;
+  sbLines.textContent   = `${lines} line${lines !== 1 ? 's' : ''}`;
+  sbChars.textContent   = `${chars.toLocaleString()} chars`;
+}
+editor.on('cursorActivity', updateStatus);
+updateStatus();
+
+/* ═══════════════════════════════════════════
+   CLICK-TO-HIGHLIGHT (message from iframe)
+═══════════════════════════════════════════ */
+window.addEventListener('message', function(e) {
+  if (!e.data || e.data.type !== 'tz-click') return;
+
+  const lineIdx = (e.data.line || 1) - 1;  // 0-based
+  if (lineIdx < 0 || lineIdx >= editor.lineCount()) return;
+
+  /* Clear previous highlights */
+  clearTimeout(hlTimeout);
+  hlLines.forEach(l => editor.removeLineClass(l, 'background', 'cm-highlighted-line'));
+  hlLines = [];
+
+  /* Highlight line and scroll to it */
+  editor.addLineClass(lineIdx, 'background', 'cm-highlighted-line');
+  hlLines.push(lineIdx);
+  editor.scrollIntoView({ line: lineIdx, ch: 0 }, 160);
+  editor.setCursor({ line: lineIdx, ch: 0 });
+
+  hlTimeout = setTimeout(() => {
+    hlLines.forEach(l => editor.removeLineClass(l, 'background', 'cm-highlighted-line'));
+    hlLines = [];
+  }, 2800);
+
+  /* Toast with element info */
+  const tag = e.data.tag || '';
+  const id  = e.data.id  ? `#${e.data.id}` : '';
+  const cls = e.data.cls ? `.${e.data.cls}` : '';
+  showToast(`✦ <${tag}${id || cls}> → Line ${e.data.line}`);
+
+  /* Show status bar tip once */
+  if (!tipShown) {
+    tipShown = true;
+    sbTip.style.display = 'flex';
+  }
+});
+
+/* ═══════════════════════════════════════════
+   TOOLBAR: FORMAT
+═══════════════════════════════════════════ */
+function formatHTML() {
+  if (typeof html_beautify === 'undefined') {
+    showToast('⚠️ Formatter not ready yet — try again');
+    return;
+  }
+  const formatted = html_beautify(editor.getValue(), {
+    indent_size: 2,
+    indent_char: ' ',
+    wrap_line_length: 120,
+    preserve_newlines: true,
+    max_preserve_newlines: 2,
+    extra_liners: ['head', 'body', '/html'],
+  });
+  editor.setValue(formatted);
+  editor.setCursor({ line: 0, ch: 0 });
+  showToast('✦ HTML formatted');
+}
+document.getElementById('btnFormat').addEventListener('click', formatHTML);
+
+/* ═══════════════════════════════════════════
+   TOOLBAR: COPY ALL
+═══════════════════════════════════════════ */
+document.getElementById('btnCopy').addEventListener('click', () => {
+  const code = editor.getValue();
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(code)
+      .then(() => showToast('✦ Copied to clipboard!'))
+      .catch(() => fallbackCopy(code));
+  } else {
+    fallbackCopy(code);
+  }
+});
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity  = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+  showToast('✦ Copied to clipboard!');
+}
+
+/* ═══════════════════════════════════════════
+   TOOLBAR: PASTE (at cursor)
+═══════════════════════════════════════════ */
+document.getElementById('btnPaste').addEventListener('click', async () => {
+  try {
+    const text = await navigator.clipboard.readText();
+    editor.replaceSelection(text);
+    editor.focus();
+    showToast('✦ Pasted at cursor');
+  } catch (err) {
+    showToast('⚠️ Clipboard access denied — use Ctrl+V');
+  }
+});
+
+/* ═══════════════════════════════════════════
+   TOOLBAR: CLEAR
+═══════════════════════════════════════════ */
+document.getElementById('btnClear').addEventListener('click', () => {
+  if (!editor.getValue().trim()) return;
+  if (!confirm('Clear all code? This cannot be undone.')) return;
+  editor.setValue('');
+  editor.focus();
+  showToast('✦ Editor cleared');
+});
+
+/* ═══════════════════════════════════════════
+   DESKTOP / MOBILE TOGGLE
+═══════════════════════════════════════════ */
+document.getElementById('btnDesktop').addEventListener('click', () => {
+  if (!isMobile) return;
+  isMobile = false;
+  previewViewport.classList.remove('is-mobile');
+  document.getElementById('btnDesktop').classList.add('active');
+  document.getElementById('btnMobile').classList.remove('active');
+  showToast('🖥 Desktop view');
+});
+
+document.getElementById('btnMobile').addEventListener('click', () => {
+  if (isMobile) return;
+  isMobile = true;
+  previewViewport.classList.add('is-mobile');
+  document.getElementById('btnMobile').classList.add('active');
+  document.getElementById('btnDesktop').classList.remove('active');
+  showToast('📱 Mobile view (390px)');
+});
+
+/* ═══════════════════════════════════════════
+   FULL PREVIEW (new tab)
+═══════════════════════════════════════════ */
+document.getElementById('btnFullPreview').addEventListener('click', () => {
+  const win = window.open('', '_blank');
+  if (!win) { showToast('⚠️ Popup blocked — allow popups for this page'); return; }
+  win.document.open();
+  win.document.write(editor.getValue());
+  win.document.close();
+});
+
+/* ═══════════════════════════════════════════
+   SHOW CLICK HINT on first load
+═══════════════════════════════════════════ */
+setTimeout(() => {
+  clickHint.classList.add('show');
+  setTimeout(() => clickHint.classList.remove('show'), 3500);
+}, 1200);
+
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+function showToast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2200);
+}
+
+/* ═══════════════════════════════════════════
+   FILENAME TRACKING
+═══════════════════════════════════════════ */
+let currentFilename = 'untitled.html';
+const sbFilename = document.getElementById('sbFilename');
+
+function setFilename(name) {
+  currentFilename = name;
+  sbFilename.textContent = name;
+  sbFilename.title = name;
+}
+
+/* ═══════════════════════════════════════════
+   IMPORT HTML FILE
+═══════════════════════════════════════════ */
+const importInput = document.getElementById('importInput');
+
+document.getElementById('btnImport').addEventListener('click', () => {
+  importInput.value = '';
+  importInput.click();
+});
+
+importInput.addEventListener('change', () => {
+  const file = importInput.files[0];
+  if (!file) return;
+
+  const nameLower = file.name.toLowerCase();
+  if (!nameLower.endsWith('.html') && !nameLower.endsWith('.htm')) {
+    showToast('⚠️ Please select a .html or .htm file');
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('⚠️ File too large — max 5 MB');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    const content = e.target.result;
+    if (editor.getValue().trim() && editor.getValue() !== DEFAULT_HTML) {
+      if (!confirm(`Replace current code with "${file.name}"?`)) return;
+    }
+    editor.setValue(content);
+    editor.setCursor({ line: 0, ch: 0 });
+    editor.scrollTo(0, 0);
+    setFilename(file.name);
+    editor.focus();
+    showToast(`✦ Imported: ${file.name}`);
+  };
+  reader.onerror = () => showToast('⚠️ Could not read file');
+  reader.readAsText(file);
+});
+
+/* ═══════════════════════════════════════════
+   SAVE HTML FILE
+═══════════════════════════════════════════ */
+function saveFile() {
+  const content = editor.getValue();
+  if (!content.trim()) { showToast('⚠️ Nothing to save'); return; }
+
+  const blob = new Blob([content], { type: 'text/html' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = currentFilename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast(`✦ Saved as "${currentFilename}"`);
+}
+
+document.getElementById('btnSave').addEventListener('click', saveFile);
+
+/* Ctrl+S / Cmd+S shortcut */
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    saveFile();
+  }
+});
+
+editor.focus();
+</script>
+</body>
+</html>
