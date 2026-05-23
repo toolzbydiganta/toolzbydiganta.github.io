@@ -21,10 +21,10 @@
   --text-muted: #7a6030;
   --text-faint: #c9a84c;
   --shadow: rgba(245,166,35,0.15);
-  --header-h: 65px; /* Adjusted to perfectly clear padding boundaries */
+  --header-h: 64px;
   --toolbar-h: 48px;
   --statusbar-h: 28px;
-  --footer-h: 62px; /* Adjusted to fit the matching padded footer layout */
+  --footer-h: 46px;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -39,25 +39,21 @@ body {
   height: 100vh;
 }
 
-/* ── COPIED STICKY HEADER STYLES (from geotag.html) ── */
-.tool-header { 
-  background: var(--white); 
-  border-bottom: 1px solid var(--border); 
-  padding: 16px 28px; 
+/* ── HEADER BRAND STYLES ── */
+.brand-header {
   height: var(--header-h);
-  display: flex; 
-  align-items: center; 
-  justify-content: space-between; 
-  position: sticky; 
-  top: 0; 
-  z-index: 100; 
   flex-shrink: 0;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
 }
-.brand-link { 
-  font-size: 1.1rem; 
-  font-weight: 700; 
-  color: var(--text); 
-  text-decoration: none; 
+.brand-link {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -185,9 +181,7 @@ body {
 .CodeMirror-activeline-background { background: rgba(245,166,35,0.05) !important; }
 .CodeMirror-selected { background: rgba(245,166,35,0.18) !important; }
 .CodeMirror-focused .CodeMirror-selected { background: rgba(245,166,35,0.22) !important; }
-/* Tag highlight on click-from-preview */
 .cm-highlighted-line { background: rgba(245,166,35,0.28) !important; }
-/* Eclipse theme color adjustments */
 .cm-s-eclipse .cm-tag { color: #c0581a !important; }
 .cm-s-eclipse .cm-attribute { color: #7a6030 !important; }
 .cm-s-eclipse .cm-string { color: #2e7d52 !important; }
@@ -266,19 +260,14 @@ body {
 }
 .click-hint-bar.show { opacity: 1; transform: translateY(0); }
 
-/* ── COPIED FOOTER STYLES (from geotag.html) ── */
-footer { 
-  border-top: 1px solid var(--border); 
-  background: var(--white); 
-  padding: 22px 40px; 
-  height: var(--footer-h);
-  display: flex; 
-  align-items: center; 
-  justify-content: space-between; 
-  flex-wrap: wrap; 
-  gap: 10px; 
-  margin-top: auto; 
+/* ── FOOTER STYLES ── */
+.brand-footer {
   flex-shrink: 0;
+  border-top: 1px solid var(--border);
+  background: var(--white);
+  padding: 22px 40px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px;
 }
 .footer-brand { font-size: 0.88rem; font-weight: 700; color: var(--text); }
 .footer-brand span { color: var(--primary); }
@@ -286,7 +275,7 @@ footer {
 
 /* ── TOAST ── */
 .toast {
-  position: fixed; bottom: 76px; left: 50%;
+  position: fixed; bottom: 56px; left: 50%;
   transform: translateX(-50%) translateY(10px);
   background: #1a1208; color: #fff;
   padding: 8px 18px; border-radius: 50px;
@@ -301,16 +290,16 @@ footer {
 @media (max-width: 680px) {
   .editor-main { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
   .editor-panel { border-right: none; border-bottom: 1.5px solid var(--border); }
-  .tool-header { padding: 16px 20px; }
+  .brand-header { padding: 12px 16px; }
   .toolbar-half { padding: 0 8px; gap: 2px; }
-  footer { padding: 16px 20px; }
+  .brand-footer { padding: 16px 20px; }
   .tb-btn span { display: none; }
 }
 </style>
 </head>
 <body>
 
-<header class="tool-header">
+<header class="brand-header">
   <a href="https://toolzbydiganta.github.io/" class="brand-link">
     <img src="logo.png" alt="Toolz Logo" class="header-logo">
     Toolz <span>by Diganta</span>
@@ -319,9 +308,7 @@ footer {
 </header>
 
 <div class="editor-toolbar">
-
   <div class="toolbar-half">
-
     <button class="tb-btn" id="btnFormat" title="Auto-format HTML (Ctrl+Shift+F)">
       <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="10" y2="8"/><line x1="2" y1="12" x2="12" y2="12"/></svg>
       <span>Format</span>
@@ -380,7 +367,6 @@ footer {
 </div>
 
 <div class="editor-main">
-
   <div class="editor-panel">
     <div class="editor-cm-wrap">
       <textarea id="codeEditor"></textarea>
@@ -406,16 +392,14 @@ footer {
       <iframe id="previewFrame"></iframe>
     </div>
   </div>
-
 </div>
 
-<footer>
+<footer class="brand-footer">
   <div class="footer-brand">Toolz <span>by Diganta</span></div>
   <div class="footer-copy">Free tools, always. Made with ☕</div>
 </footer>
 
 <div class="toast" id="toast"></div>
-
 <input type="file" id="importInput" accept=".html,.htm" style="display:none">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
@@ -429,9 +413,6 @@ footer {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify-html.min.js"></script>
 
 <script>
-/* ═══════════════════════════════════════════
-   DEFAULT HTML CONTENT
-═══════════════════════════════════════════ */
 const DEFAULT_HTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -440,89 +421,44 @@ const DEFAULT_HTML = `<!DOCTYPE html>
   <title>My Page</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #fffdf7;
-      color: #1a1208;
-      padding: 40px 24px;
-    }
+    body { font-family: 'Segoe UI', sans-serif; background: #fffdf7; color: #1a1208; padding: 40px 24px; }
     h1 { font-size: 2rem; color: #f5a623; margin-bottom: 12px; }
     p  { color: #7a6030; line-height: 1.7; margin-bottom: 16px; }
-    .card {
-      background: #fff;
-      border: 1.5px solid #f0ddb0;
-      border-radius: 16px;
-      padding: 32px;
-      max-width: 560px;
-      box-shadow: 0 4px 20px rgba(245,166,35,0.12);
-    }
-    .tip {
-      background: #fff8ec;
-      border-left: 3px solid #f5a623;
-      padding: 12px 16px;
-      border-radius: 0 8px 8px 0;
-      font-size: 0.9rem;
-      margin-top: 16px;
-      color: #7a6030;
-    }
-    .btn {
-      display: inline-block;
-      background: #f5a623;
-      color: #fff;
-      padding: 10px 24px;
-      border-radius: 50px;
-      font-weight: 600;
-      text-decoration: none;
-      margin-top: 18px;
-      transition: background 0.2s;
-    }
+    .card { background: #fff; border: 1.5px solid #f0ddb0; border-radius: 16px; padding: 32px; max-width: 560px; box-shadow: 0 4px 20px rgba(245,166,35,0.12); }
+    .tip { background: #fff8ec; border-left: 3px solid #f5a623; padding: 12px 16px; border-radius: 0 8px 8px 0; font-size: 0.9rem; margin-top: 16px; color: #7a6030; }
+    .btn { display: inline-block; background: #f5a623; color: #fff; padding: 10px 24px; border-radius: 50px; font-weight: 600; text-decoration: none; margin-top: 18px; transition: background 0.2s; }
     .btn:hover { background: #d4880a; }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>Hello World 👋</h1>
-    <p>
-      Edit the HTML on the left — the preview
-      updates live as you type.
-    </p>
-    <div class="tip">
-      💡 <strong>Tip:</strong> Click any element in the
-      preview panel to jump straight to its code.
-    </div>
-    <a href="#" class="btn">Click me ✨</a>
+    <p>Edit the HTML on the left — the preview updates live as you type.</p>
+    <div class="tip">💡 <strong>Tip:</strong> Click any element in the preview panel to jump straight to its code.</div>
   </div>
 </body>
 </html>`;
 
-/* ═══════════════════════════════════════════
-   INIT CODEMIRROR
-═══════════════════════════════════════════ */
-const editor = CodeMirror.fromTextArea(
-  document.getElementById('codeEditor'), {
-    mode: 'htmlmixed',
-    theme: 'eclipse',
-    lineNumbers: true,
-    styleActiveLine: true,
-    matchBrackets: true,
-    autoCloseTags: true,
-    lineWrapping: false,
-    tabSize: 2,
-    indentWithTabs: false,
-    extraKeys: {
-      'Tab': cm => cm.execCommand('indentMore'),
-      'Shift-Tab': cm => cm.execCommand('indentLess'),
-      'Ctrl-Shift-F': () => formatHTML(),
-      'Cmd-Shift-F':  () => formatHTML(),
-    }
+const editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
+  mode: 'htmlmixed',
+  theme: 'eclipse',
+  lineNumbers: true,
+  styleActiveLine: true,
+  matchBrackets: true,
+  autoCloseTags: true,
+  lineWrapping: false,
+  tabSize: 2,
+  indentWithTabs: false,
+  extraKeys: {
+    'Tab': cm => cm.execCommand('indentMore'),
+    'Shift-Tab': cm => cm.execCommand('indentLess'),
+    'Ctrl-Shift-F': () => formatHTML(),
+    'Cmd-Shift-F':  () => formatHTML(),
   }
-);
+});
 editor.setValue(DEFAULT_HTML);
 setTimeout(() => editor.refresh(), 100);
 
-/* ═══════════════════════════════════════════
-   ELEMENT REFS
-═══════════════════════════════════════════ */
 const previewFrame    = document.getElementById('previewFrame');
 const previewViewport = document.getElementById('previewViewport');
 const cursorTag       = document.getElementById('cursorTag');
@@ -540,24 +476,16 @@ let tipShown       = false;
 let previewTimer   = null;
 let toastTimer     = null;
 
-/* ═══════════════════════════════════════════
-   ANNOTATE HTML WITH LINE NUMBERS
-   Adds data-toolz-line="N" to every opening tag
-═══════════════════════════════════════════ */
 function annotateHTML(html) {
   const lines = html.split('\n');
   return lines.map((line, i) => {
     return line.replace(
-      /<([a-zA-Z][a-zA-Z0-9-]*)(\s|\/?>)/g,
+      		/<([a-zA-Z][a-zA-Z0-9-]*)(\s|\/?>)/g,
       (m, tag, after) => `<${tag} data-tz="${i + 1}"${after}`
     );
   }).join('\n');
 }
 
-/* ═══════════════════════════════════════════
-   BUILD PREVIEW HTML
-   Annotates + injects click/hover listener
-═══════════════════════════════════════════ */
 function buildPreviewHTML(raw) {
   const annotated = annotateHTML(raw);
   const injectScript = `<scri` + `pt>
@@ -570,7 +498,6 @@ function buildPreviewHTML(raw) {
     }
     return null;
   }
-  /* Hover outline */
   document.addEventListener('mouseover', function(e) {
     var t = findEl(e.target);
     if (_prev && _prev !== t) {
@@ -593,7 +520,6 @@ function buildPreviewHTML(raw) {
       t.style.cursor = '';
     }
   }, true);
-  /* Click → postMessage to parent */
   document.addEventListener('click', function(e) {
     var t = findEl(e.target);
     if (!t) return;
@@ -614,9 +540,6 @@ function buildPreviewHTML(raw) {
   return annotated + injectScript;
 }
 
-/* ═══════════════════════════════════════════
-   UPDATE PREVIEW (debounced)
-═══════════════════════════════════════════ */
 function schedulePreview() {
   clearTimeout(previewTimer);
   previewTimer = setTimeout(updatePreview, 320);
@@ -631,11 +554,8 @@ function updatePreview() {
 }
 
 editor.on('change', schedulePreview);
-updatePreview();  // initial render
+updatePreview();
 
-/* ═══════════════════════════════════════════
-   STATUS BAR + CURSOR INFO
-═══════════════════════════════════════════ */
 function updateStatus() {
   const cur   = editor.getCursor();
   const ln    = cur.line + 1;
@@ -650,21 +570,19 @@ function updateStatus() {
 editor.on('cursorActivity', updateStatus);
 updateStatus();
 
-/* ═══════════════════════════════════════════
-   CLICK-TO-HIGHLIGHT (message from iframe)
-═══════════════════════════════════════════ */
+/* ── STRICT SECURITY SOURCE CHECK FOR MESSAGES ── */
 window.addEventListener('message', function(e) {
+  // Ensure messages only pass when matching the specific inner preview content runtime context window
+  if (!previewFrame || e.source !== previewFrame.contentWindow) return;
   if (!e.data || e.data.type !== 'tz-click') return;
 
-  const lineIdx = (e.data.line || 1) - 1;  // 0-based
+  const lineIdx = (e.data.line || 1) - 1;
   if (lineIdx < 0 || lineIdx >= editor.lineCount()) return;
 
-  /* Clear previous highlights */
   clearTimeout(hlTimeout);
   hlLines.forEach(l => editor.removeLineClass(l, 'background', 'cm-highlighted-line'));
   hlLines = [];
 
-  /* Highlight line and scroll to it */
   editor.addLineClass(lineIdx, 'background', 'cm-highlighted-line');
   hlLines.push(lineIdx);
   editor.scrollIntoView({ line: lineIdx, ch: 0 }, 160);
@@ -675,22 +593,17 @@ window.addEventListener('message', function(e) {
     hlLines = [];
   }, 2800);
 
-  /* Toast with element info */
   const tag = e.data.tag || '';
   const id  = e.data.id  ? `#${e.data.id}` : '';
   const cls = e.data.cls ? `.${e.data.cls}` : '';
   showToast(`✦ <${tag}${id || cls}> → Line ${e.data.line}`);
 
-  /* Show status bar tip once */
   if (!tipShown) {
     tipShown = true;
     sbTip.style.display = 'flex';
   }
 });
 
-/* ═══════════════════════════════════════════
-   TOOLBAR: FORMAT
-═══════════════════════════════════════════ */
 function formatHTML() {
   if (typeof html_beautify === 'undefined') {
     showToast('⚠️ Formatter not ready yet — try again');
@@ -710,9 +623,6 @@ function formatHTML() {
 }
 document.getElementById('btnFormat').addEventListener('click', formatHTML);
 
-/* ═══════════════════════════════════════════
-   TOOLBAR: COPY ALL
-═══════════════════════════════════════════ */
 document.getElementById('btnCopy').addEventListener('click', () => {
   const code = editor.getValue();
   if (navigator.clipboard) {
@@ -736,9 +646,6 @@ function fallbackCopy(text) {
   showToast('✦ Copied to clipboard!');
 }
 
-/* ═══════════════════════════════════════════
-   TOOLBAR: PASTE (at cursor)
-═══════════════════════════════════════════ */
 document.getElementById('btnPaste').addEventListener('click', async () => {
   try {
     const text = await navigator.clipboard.readText();
@@ -750,9 +657,6 @@ document.getElementById('btnPaste').addEventListener('click', async () => {
   }
 });
 
-/* ═══════════════════════════════════════════
-   TOOLBAR: CLEAR
-═══════════════════════════════════════════ */
 document.getElementById('btnClear').addEventListener('click', () => {
   if (!editor.getValue().trim()) return;
   if (!confirm('Clear all code? This cannot be undone.')) return;
@@ -761,9 +665,6 @@ document.getElementById('btnClear').addEventListener('click', () => {
   showToast('✦ Editor cleared');
 });
 
-/* ═══════════════════════════════════════════
-   DESKTOP / MOBILE TOGGLE
-═══════════════════════════════════════════ */
 document.getElementById('btnDesktop').addEventListener('click', () => {
   if (!isMobile) return;
   isMobile = false;
@@ -782,9 +683,6 @@ document.getElementById('btnMobile').addEventListener('click', () => {
   showToast('📱 Mobile view (390px)');
 });
 
-/* ═══════════════════════════════════════════
-   FULL PREVIEW (new tab)
-═══════════════════════════════════════════ */
 document.getElementById('btnFullPreview').addEventListener('click', () => {
   const win = window.open('', '_blank');
   if (!win) { showToast('⚠️ Popup blocked — allow popups for this page'); return; }
@@ -793,17 +691,11 @@ document.getElementById('btnFullPreview').addEventListener('click', () => {
   win.document.close();
 });
 
-/* ═══════════════════════════════════════════
-   SHOW CLICK HINT on first load
-═══════════════════════════════════════════ */
 setTimeout(() => {
   clickHint.classList.add('show');
   setTimeout(() => clickHint.classList.remove('show'), 3500);
 }, 1200);
 
-/* ═══════════════════════════════════════════
-   TOAST
-═══════════════════════════════════════════ */
 function showToast(msg) {
   toastEl.textContent = msg;
   toastEl.classList.add('show');
@@ -811,9 +703,6 @@ function showToast(msg) {
   toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2200);
 }
 
-/* ═══════════════════════════════════════════
-   FILENAME TRACKING
-═══════════════════════════════════════════ */
 let currentFilename = 'untitled.html';
 const sbFilename = document.getElementById('sbFilename');
 
@@ -823,11 +712,7 @@ function setFilename(name) {
   sbFilename.title = name;
 }
 
-/* ═══════════════════════════════════════════
-   IMPORT HTML FILE
-═══════════════════════════════════════════ */
 const importInput = document.getElementById('importInput');
-
 document.getElementById('btnImport').addEventListener('click', () => {
   importInput.value = '';
   importInput.click();
@@ -864,9 +749,6 @@ importInput.addEventListener('change', () => {
   reader.readAsText(file);
 });
 
-/* ═══════════════════════════════════════════
-   SAVE HTML FILE
-═══════════════════════════════════════════ */
 function saveFile() {
   const content = editor.getValue();
   if (!content.trim()) { showToast('⚠️ Nothing to save'); return; }
@@ -885,7 +767,6 @@ function saveFile() {
 
 document.getElementById('btnSave').addEventListener('click', saveFile);
 
-/* Ctrl+S / Cmd+S shortcut */
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 's') {
     e.preventDefault();
