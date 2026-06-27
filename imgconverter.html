@@ -96,7 +96,7 @@
     margin-bottom: 8px;
   }
   .page-heading p {
-    font-size: 0.9rem; color: var(--text-muted); line-height: 1.65; max-width: 420px; margin: 0 auto;
+    font-size: 0.9rem; color: var(--text-muted); line-height: 1.65; max-width: 440px; margin: 0 auto;
   }
 
   /* ── CONVERTER LAYOUT ── */
@@ -105,7 +105,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
-    align-items: start;
+    align-items: stretch;
     animation: fadeUp 0.45s ease 0.1s both;
   }
 
@@ -116,6 +116,8 @@
     border-radius: var(--radius);
     padding: 26px 24px;
     box-shadow: 0 2px 16px var(--shadow);
+    display: flex;
+    flex-direction: column;
   }
 
   .panel-label {
@@ -131,7 +133,7 @@
     position: relative;
     border: 2px dashed var(--border);
     border-radius: 14px;
-    padding: 44px 20px;
+    padding: 36px 20px;
     text-align: center; cursor: pointer;
     transition: border-color 0.2s, background 0.2s;
   }
@@ -142,56 +144,94 @@
     position: absolute; inset: 0; opacity: 0;
     cursor: pointer; width: 100%; height: 100%;
   }
-  .drop-icon { font-size: 2.4rem; margin-bottom: 12px; display: block; }
+  .drop-icon { font-size: 2.2rem; margin-bottom: 10px; display: block; }
   .drop-text { font-size: 0.88rem; color: var(--text-muted); }
   .drop-text b { color: var(--text); }
   .drop-hint { font-size: 0.73rem; color: var(--text-faint); margin-top: 6px; letter-spacing: 0.04em; }
 
-  /* ── PREVIEW ── */
-  .preview-area { display: none; }
+  /* ── FILE GRID (multi-upload previews) ── */
+  .file-grid-wrap { margin-top: 18px; }
 
-  .preview-img-wrap {
-    border-radius: 12px; overflow: hidden;
-    border: 1.5px solid var(--border);
-    background: repeating-conic-gradient(#f5f0e8 0% 25%, #fdfaf4 0% 50%) 0 0 / 18px 18px;
-    margin-bottom: 14px;
-    display: flex; align-items: center; justify-content: center;
-    min-height: 160px; max-height: 220px;
+  .grid-summary {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .count-text { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); }
+  .clear-all-btn {
+    font-size: 0.74rem; font-weight: 700; color: var(--text-faint);
+    background: none; border: none; cursor: pointer; transition: color 0.15s;
+  }
+  .clear-all-btn:hover { color: #dc2626; }
+  .clear-all-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .file-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+    gap: 10px;
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  .file-thumb {
     position: relative;
-  }
-  .preview-img-wrap img {
-    max-width: 100%; max-height: 220px;
-    object-fit: contain; display: block;
-  }
-
-  .preview-meta {
-    display: flex; align-items: center; gap: 10px;
-    background: var(--primary-soft);
     border: 1.5px solid var(--border);
     border-radius: 10px;
-    padding: 10px 14px;
+    padding: 6px;
+    background: var(--bg);
+    transition: border-color 0.15s;
   }
-  .file-info { flex: 1; min-width: 0; }
-  .file-name {
-    font-size: 0.82rem; font-weight: 600; color: var(--text);
+  .file-thumb.thumb-error { border-color: #f3b8b8; background: #fef5f5; }
+
+  /* Fixed-size square box so every thumbnail is identical regardless of the
+     uploaded photo's original dimensions/aspect ratio */
+  .thumb-img-wrap {
+    aspect-ratio: 1 / 1;
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    background: repeating-conic-gradient(#f5f0e8 0% 25%, #fdfaf4 0% 50%) 0 0 / 14px 14px;
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 6px;
+  }
+  .thumb-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .thumb-spinner {
+    width: 20px; height: 20px;
+    border: 3px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.65s linear infinite;
+  }
+  .thumb-err-icon { font-size: 1.2rem; }
+
+  .thumb-remove {
+    position: absolute; top: -7px; right: -7px;
+    width: 20px; height: 20px;
+    background: var(--white); border: 1.5px solid var(--border);
+    border-radius: 50%; cursor: pointer;
+    font-size: 0.62rem; color: var(--text-faint);
+    display: flex; align-items: center; justify-content: center;
+    transition: color 0.15s, border-color 0.15s;
+    z-index: 2; padding: 0; line-height: 1;
+  }
+  .thumb-remove:hover { color: #dc2626; border-color: #f3b8b8; }
+
+  .thumb-name {
+    font-size: 0.66rem; font-weight: 600; color: var(--text);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .file-size { font-size: 0.7rem; color: var(--text-faint); margin-top: 2px; }
-
-  .detected-badge {
-    background: var(--primary); color: #fff;
-    font-size: 0.68rem; font-weight: 700;
-    padding: 4px 11px; border-radius: 50px;
-    letter-spacing: 0.06em; text-transform: uppercase;
-    flex-shrink: 0;
+  .thumb-meta {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 2px;
   }
-  .remove-btn {
-    background: none; border: none; cursor: pointer;
-    color: var(--text-faint); font-size: 1rem;
-    transition: color 0.15s; flex-shrink: 0; line-height: 1;
-    padding: 2px;
+  .thumb-size { font-size: 0.6rem; color: var(--text-faint); }
+  .thumb-fmt {
+    font-size: 0.56rem; font-weight: 700; color: var(--primary-dark);
+    background: var(--primary-soft); border-radius: 50px; padding: 1px 6px;
+    letter-spacing: 0.04em;
   }
-  .remove-btn:hover { color: #dc2626; }
 
   /* ── RIGHT: EMPTY STATE ── */
   .right-empty {
@@ -199,6 +239,7 @@
     align-items: center; justify-content: center;
     padding: 44px 16px; text-align: center;
     gap: 12px; color: var(--text-faint);
+    flex: 1;
     min-height: 300px;
   }
   .right-empty-icon {
@@ -285,6 +326,7 @@
     cursor: pointer;
     transition: background 0.18s, transform 0.15s, box-shadow 0.2s;
     display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-top: auto;
   }
   .btn-convert:hover:not(:disabled) {
     background: var(--primary-dark);
@@ -338,8 +380,9 @@
   @media (max-width: 640px) {
     .tool-header { padding: 16px 20px; }
     main { padding: 32px 16px 48px; }
-    .converter-wrap { grid-template-columns: 1fr; }
+    .converter-wrap { grid-template-columns: 1fr; align-items: start; }
     .right-empty { min-height: 180px; padding: 28px 16px; }
+    .file-grid { max-height: 280px; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
     footer { padding: 16px 20px; }
   }
 </style>
@@ -364,33 +407,27 @@
   <div class="page-heading">
     <div class="icon-wrap">🔄</div>
     <h1>Image Converter</h1>
-    <p>Upload any image — we detect the format and convert it instantly in your browser. No uploads to any server.</p>
+    <p>Upload up to 20 images — we detect each format and convert them all instantly in your browser, then bundle the results into a ZIP. No uploads to any server.</p>
   </div>
 
   <div class="converter-wrap">
 
     <div class="panel">
-      <div class="panel-label">Upload Image</div>
+      <div class="panel-label">Upload Images</div>
 
       <div class="drop-zone" id="dropZone">
-        <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.webp,.svg">
+        <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.webp,.svg" multiple>
         <span class="drop-icon">🖼️</span>
         <div class="drop-text"><b>Click to upload</b> or drag & drop</div>
-        <div class="drop-hint">JPG &nbsp;·&nbsp; PNG &nbsp;·&nbsp; WebP &nbsp;·&nbsp; SVG</div>
+        <div class="drop-hint">JPG &nbsp;·&nbsp; PNG &nbsp;·&nbsp; WebP &nbsp;·&nbsp; SVG &nbsp;·&nbsp; up to 20 images</div>
       </div>
 
-      <div class="preview-area" id="previewArea">
-        <div class="preview-img-wrap">
-          <img id="previewImg" alt="Preview">
+      <div class="file-grid-wrap" id="fileGridWrap" style="display:none;">
+        <div class="grid-summary">
+          <span class="count-text" id="countText">0 / 20 images selected</span>
+          <button class="clear-all-btn" id="clearAllBtn">Clear all</button>
         </div>
-        <div class="preview-meta">
-          <div class="file-info">
-            <div class="file-name" id="fileName"></div>
-            <div class="file-size" id="fileSize"></div>
-          </div>
-          <span class="detected-badge" id="detectedBadge"></span>
-          <button class="remove-btn" id="removeBtn" title="Remove">✕</button>
-        </div>
+        <div class="file-grid" id="fileGrid"></div>
       </div>
     </div>
 
@@ -398,7 +435,7 @@
 
       <div class="right-empty" id="rightEmpty">
         <div class="right-empty-icon">⚙️</div>
-        <div class="right-empty-text">Upload an image on the left to see conversion options</div>
+        <div class="right-empty-text">Upload images on the left to see conversion options</div>
       </div>
 
       <div id="optionsArea" style="display:none;">
@@ -452,9 +489,9 @@
             <polyline points="9,4 13,8 9,12"/>
           </svg>
         </button>
-
-        <div class="status" id="status"></div>
       </div>
+
+      <div class="status" id="status"></div>
 
     </div>
   </div>
@@ -467,30 +504,30 @@
   <div class="footer-copy">Free tools, always. Made with ☕</div>
 </footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
-  const dropZone    = document.getElementById('dropZone');
-  const fileInput   = document.getElementById('fileInput');
-  const previewArea = document.getElementById('previewArea');
-  const previewImg  = document.getElementById('previewImg');
-  const fileNameEl  = document.getElementById('fileName');
-  const fileSizeEl  = document.getElementById('fileSize');
-  const detectedBadge = document.getElementById('detectedBadge');
-  const removeBtn   = document.getElementById('removeBtn');
-  const rightEmpty  = document.getElementById('rightEmpty');
-  const optionsArea = document.getElementById('optionsArea');
-  const convertBtn  = document.getElementById('convertBtn');
-  const btnLabel    = document.getElementById('btnLabel');
-  const spinner     = document.getElementById('spinner');
-  const statusEl    = document.getElementById('status');
-  const canvas      = document.getElementById('canvas');
-  const ctx         = canvas.getContext('2d');
+  const dropZone     = document.getElementById('dropZone');
+  const fileInput    = document.getElementById('fileInput');
+  const fileGridWrap = document.getElementById('fileGridWrap');
+  const fileGrid     = document.getElementById('fileGrid');
+  const countText    = document.getElementById('countText');
+  const clearAllBtn  = document.getElementById('clearAllBtn');
+  const rightEmpty   = document.getElementById('rightEmpty');
+  const optionsArea  = document.getElementById('optionsArea');
+  const convertBtn   = document.getElementById('convertBtn');
+  const btnLabel     = document.getElementById('btnLabel');
+  const spinner      = document.getElementById('spinner');
+  const statusEl     = document.getElementById('status');
+  const canvas       = document.getElementById('canvas');
+  const ctx          = canvas.getContext('2d');
 
   const ALL_FORMATS = ['jpg','png','webp','svg'];
   const MIME = { jpg:'image/jpeg', png:'image/png', webp:'image/webp', svg:'image/svg+xml' };
+  const MAX_FILES = 20;
+  const MAX_SIZE  = 30 * 1024 * 1024; // 30 MB per file
 
-  let currentFile = null;
-  let currentDataUrl = null;
-  let currentFormat = null;
+  let filesData = [];   // [{ id, file, format, name, baseName, size, dataUrl, status, error, readyPromise }]
+  let idCounter = 0;
 
   /* ── DETECT FORMAT ── */
   function detectFormat(file) {
@@ -514,213 +551,307 @@
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   }
 
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
   /* ── DRAG & DROP ── */
   dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('over'); });
   ['dragleave','dragend'].forEach(ev => dropZone.addEventListener(ev, () => dropZone.classList.remove('over')));
   dropZone.addEventListener('drop', e => {
     e.preventDefault(); dropZone.classList.remove('over');
-    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+    if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
   });
-  fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) handleFiles(fileInput.files);
+    fileInput.value = ''; // allow re-selecting the same file(s) again later
+  });
 
-  /* ── HANDLE FILE ── */
-  function handleFile(file) {
-    const fmt = detectFormat(file);
-    if (!fmt) { showStatus('error','⚠️ Unsupported format. Please upload JPG, PNG, WebP, or SVG.'); return; }
-    if (file.size > 30 * 1024 * 1024) { showStatus('error','⚠️ File is too large. Max size is 30 MB.'); return; }
+  /* ── HANDLE NEW FILES ── */
+  function handleFiles(fileList) {
+    const incoming = Array.from(fileList);
+    const rejected = [];
 
-    currentFile = file;
-    currentFormat = fmt;
+    for (const file of incoming) {
+      if (filesData.length >= MAX_FILES) { rejected.push(`${file.name} (20 image limit reached)`); continue; }
+      const fmt = detectFormat(file);
+      if (!fmt) { rejected.push(`${file.name} (unsupported format)`); continue; }
+      if (file.size > MAX_SIZE) { rejected.push(`${file.name} (too large, max 30MB)`); continue; }
 
-    const reader = new FileReader();
-    reader.onload = e => {
-      currentDataUrl = e.target.result;
-      previewImg.src = currentDataUrl;
-      fileNameEl.textContent = file.name;
-      fileSizeEl.textContent = fmtSize(file.size);
-      detectedBadge.textContent = fmt.toUpperCase();
+      const item = {
+        id: 'f' + (idCounter++),
+        file, format: fmt,
+        name: file.name,
+        baseName: file.name.replace(/\.[^/.]+$/, ''),
+        size: file.size,
+        dataUrl: null,
+        status: 'loading',
+        error: null,
+        readyPromise: null
+      };
+      filesData.push(item);
+      readFileForItem(item);
+    }
 
-      dropZone.style.display = 'none';
-      previewArea.style.display = 'block';
-      rightEmpty.style.display = 'none';
-      optionsArea.style.display = 'block';
+    updateUIState();
 
-      buildFormatCards(fmt);
+    if (rejected.length) {
+      showStatus('error', `⚠️ ${rejected.length} file(s) skipped: ${rejected.join(', ')}`);
+    } else {
       hideStatus();
-    };
-    reader.onerror = () => showStatus('error','⚠️ Could not read the file. Try again.');
-    reader.readAsDataURL(file);
+    }
   }
 
-  /* ── BUILD FORMAT CARDS ── */
-  function buildFormatCards(currentFmt) {
-    ALL_FORMATS.forEach(f => {
-      const label = document.getElementById(`opt-${f}`);
-      const card  = label.querySelector('.format-card');
-      const radio = label.querySelector('input');
-
-      // Remove old tag
-      card.querySelector('.format-tag')?.remove();
-
-      if (f === currentFmt) {
-        card.classList.add('disabled');
-        radio.disabled = true;
-        radio.checked  = false;
-        const tag = document.createElement('div');
-        tag.className = 'format-tag';
-        tag.textContent = 'Current';
-        card.appendChild(tag);
-      } else {
-        card.classList.remove('disabled');
-        radio.disabled = false;
-      }
+  function readFileForItem(item) {
+    item.readyPromise = new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        item.dataUrl = e.target.result;
+        item.status = 'ready';
+        renderGrid();
+        resolve();
+      };
+      reader.onerror = () => {
+        item.status = 'error';
+        item.error = 'Could not read file';
+        renderGrid();
+        resolve();
+      };
+      reader.readAsDataURL(item.file);
     });
-    convertBtn.disabled = true;
-    btnLabel.textContent = 'Choose a format above';
   }
 
-  /* ── RADIO CHANGE ── */
-  document.querySelectorAll('input[name="fmt"]').forEach(r => {
-    r.addEventListener('change', () => {
-      convertBtn.disabled = false;
-      const fmt = r.value.toUpperCase();
-      btnLabel.textContent = `Convert to ${fmt} & Download`;
-    });
+  /* ── UI STATE ── */
+  function updateUIState() {
+    const has = filesData.length > 0;
+    fileGridWrap.style.display = has ? 'block' : 'none';
+    rightEmpty.style.display = has ? 'none' : '';
+    optionsArea.style.display = has ? 'block' : 'none';
+    renderGrid();
+    refreshConvertLabel();
+  }
+
+  function renderGrid() {
+    countText.textContent = `${filesData.length} / ${MAX_FILES} image${filesData.length === 1 ? '' : 's'} selected`;
+
+    fileGrid.innerHTML = filesData.map(item => {
+      const loading = item.status === 'loading';
+      const errored = item.status === 'error';
+      let inner;
+      if (loading) inner = '<span class="thumb-spinner"></span>';
+      else if (errored) inner = '<span class="thumb-err-icon">⚠️</span>';
+      else inner = `<img src="${item.dataUrl}" alt="">`;
+
+      return `
+        <div class="file-thumb ${errored ? 'thumb-error' : ''}" data-id="${item.id}">
+          <button class="thumb-remove" data-id="${item.id}" title="Remove">✕</button>
+          <div class="thumb-img-wrap">${inner}</div>
+          <div class="thumb-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
+          <div class="thumb-meta">
+            <span class="thumb-size">${fmtSize(item.size)}</span>
+            <span class="thumb-fmt">${item.format.toUpperCase()}</span>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  fileGrid.addEventListener('click', e => {
+    const btn = e.target.closest('.thumb-remove');
+    if (btn) removeFile(btn.dataset.id);
   });
 
-  /* ── REMOVE ── */
-  removeBtn.addEventListener('click', reset);
-  function reset() {
-    currentFile = currentDataUrl = currentFormat = null;
-    previewImg.src = '';
-    fileInput.value = '';
-    dropZone.style.display = '';
-    previewArea.style.display = 'none';
-    rightEmpty.style.display = '';
-    optionsArea.style.display = 'none';
-    document.querySelectorAll('input[name="fmt"]').forEach(r => r.checked = false);
-    convertBtn.disabled = true;
-    btnLabel.textContent = 'Choose a format above';
-    hideStatus();
+  function removeFile(id) {
+    filesData = filesData.filter(f => f.id !== id);
+    updateUIState();
   }
 
-  /* ── CONVERT ── */
-  convertBtn.addEventListener('click', () => {
+  clearAllBtn.addEventListener('click', () => resetFiles());
+
+  /* ── RESET (clears uploaded images & form state) ──
+     keepStatus=true is used right after a successful download, so the
+     success message stays visible while the tool returns to empty state. */
+  function resetFiles({ keepStatus = false } = {}) {
+    filesData = [];
+    fileInput.value = '';
+    document.querySelectorAll('input[name="fmt"]').forEach(r => r.checked = false);
+    updateUIState();
+    if (!keepStatus) hideStatus();
+  }
+
+  /* ── FORMAT SELECTION ── */
+  document.querySelectorAll('input[name="fmt"]').forEach(r => {
+    r.addEventListener('change', refreshConvertLabel);
+  });
+
+  function refreshConvertLabel() {
+    const checked = document.querySelector('input[name="fmt"]:checked');
+    if (!filesData.length || !checked) {
+      convertBtn.disabled = true;
+      btnLabel.textContent = filesData.length ? 'Choose a format above' : 'Upload images to begin';
+      return;
+    }
+    convertBtn.disabled = false;
+    const suffix = filesData.length > 1 ? ' (.zip)' : '';
+    btnLabel.textContent = `Convert ${filesData.length} image${filesData.length > 1 ? 's' : ''} to ${checked.value.toUpperCase()}${suffix}`;
+  }
+
+  /* ── CONVERT (single file → direct download, multiple → ZIP) ── */
+  convertBtn.addEventListener('click', async () => {
     const targetFmt = document.querySelector('input[name="fmt"]:checked')?.value;
-    if (!targetFmt || !currentDataUrl) return;
+    if (!targetFmt || !filesData.length) return;
 
     setBusy(true);
 
+    const singleFile = filesData.length === 1;
+    const zip = singleFile ? null : new JSZip();
+    const usedNames = new Set();
+    let successCount = 0;
+    const failedNames = [];
+    let singleBlob = null;
+    let singleName = null;
+
+    for (let i = 0; i < filesData.length; i++) {
+      const item = filesData[i];
+      setProgress(i + 1, filesData.length);
+      try {
+        if (item.readyPromise) await item.readyPromise;
+        if (item.status === 'error') throw new Error(item.error || 'File not readable');
+
+        const blob = await convertOne(item, targetFmt);
+        const fname = uniqueName(`${item.baseName}.${targetFmt}`, usedNames);
+        if (singleFile) {
+          singleBlob = blob;
+          singleName = fname;
+        } else {
+          zip.file(fname, blob);
+        }
+        successCount++;
+      } catch (err) {
+        failedNames.push(item.name);
+      }
+    }
+
+    if (successCount === 0) {
+      setBusy(false);
+      showStatus('error', '⚠️ Conversion failed for all images. Please try again.');
+      return;
+    }
+
     try {
-      if (targetFmt === 'svg') {
-        convertToSVG(targetFmt);
-      } else if (currentFormat === 'svg') {
-        convertFromSVG(targetFmt);
+      if (singleFile) {
+        const url = URL.createObjectURL(singleBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = singleName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
       } else {
-        convertRaster(targetFmt);
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        const url = URL.createObjectURL(zipBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'toolzimgconvert.zip';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
     } catch (err) {
       setBusy(false);
-      showStatus('error','⚠️ Conversion failed. Please try again.');
+      showStatus('error', singleFile ? '⚠️ Could not prepare the download. Please try again.' : '⚠️ Could not create the ZIP file. Please try again.');
+      return;
+    }
+
+    setBusy(false);
+
+    if (failedNames.length === 0) {
+      const doneMsg = singleFile
+        ? `✅ Converted to ${targetFmt.toUpperCase()} and downloaded as ${singleName}!`
+        : `✅ Converted ${successCount} image${successCount > 1 ? 's' : ''} to ${targetFmt.toUpperCase()} and downloaded as toolzimgconvert.zip!`;
+      showStatus('success', doneMsg);
+      resetFiles({ keepStatus: true }); // clear uploaded images so the tool is ready for the next batch
+    } else {
+      showStatus('error', `⚠️ Converted ${successCount} image(s)${singleFile ? '' : ' to toolzimgconvert.zip'}, but ${failedNames.length} failed: ${failedNames.join(', ')}`);
     }
   });
 
-  /* ── Raster → Raster ── */
-  function convertRaster(fmt) {
-    const img = new Image();
-    img.onload = () => {
-      canvas.width  = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (fmt === 'jpg') { ctx.fillStyle = '#fff'; ctx.fillRect(0,0,canvas.width,canvas.height); }
-      ctx.drawImage(img, 0, 0);
-      const dataUrl = canvas.toDataURL(MIME[fmt], fmt === 'jpg' ? 0.92 : undefined);
-      triggerDownload(dataUrl, fmt);
-      done(fmt);
-    };
-    img.onerror = () => { setBusy(false); showStatus('error','⚠️ Could not process image.'); };
-    img.src = currentDataUrl;
+  /* ── CONVERT A SINGLE ITEM → Blob ── */
+  function loadImage(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('Could not load image'));
+      img.src = src;
+    });
   }
 
-  /* ── SVG → Raster ── */
-  function convertFromSVG(fmt) {
-    const img = new Image();
-    img.onload = () => {
-      const w = img.naturalWidth  || 800;
+  async function convertOne(item, targetFmt) {
+    // Already the target vector format — just pass the original file through.
+    if (targetFmt === 'svg' && item.format === 'svg') {
+      return item.file;
+    }
+
+    if (targetFmt === 'svg') {
+      // Raster → SVG (embed as a data URI inside a vector wrapper)
+      const img = await loadImage(item.dataUrl);
+      const w = img.naturalWidth || 800;
       const h = img.naturalHeight || 600;
-      canvas.width = w; canvas.height = h;
-      ctx.clearRect(0, 0, w, h);
-      if (fmt === 'jpg') { ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h); }
-      ctx.drawImage(img, 0, 0, w, h);
-      const dataUrl = canvas.toDataURL(MIME[fmt], fmt === 'jpg' ? 0.92 : undefined);
-      triggerDownload(dataUrl, fmt);
-      done(fmt);
-    };
-    img.onerror = () => { setBusy(false); showStatus('error','⚠️ Could not render SVG. Try a simpler SVG file.'); };
-    img.src = currentDataUrl;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><image href="${item.dataUrl}" width="${w}" height="${h}"/></svg>`;
+      return new Blob([svg], { type: 'image/svg+xml' });
+    }
+
+    // Target is a raster format (jpg / png / webp) — works for raster or SVG sources
+    const img = await loadImage(item.dataUrl);
+    const w = img.naturalWidth || 800;
+    const h = img.naturalHeight || 600;
+    canvas.width = w;
+    canvas.height = h;
+    ctx.clearRect(0, 0, w, h);
+    if (targetFmt === 'jpg') { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); }
+    ctx.drawImage(img, 0, 0, w, h);
+    const dataUrl = canvas.toDataURL(MIME[targetFmt], targetFmt === 'jpg' ? 0.92 : undefined);
+    return dataURLtoBlob(dataUrl, MIME[targetFmt]);
   }
 
-  /* ── Raster → SVG (embed) ── */
-  function convertToSVG() {
-    const img = new Image();
-    img.onload = () => {
-      const w = img.naturalWidth  || 800;
-      const h = img.naturalHeight || 600;
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><image href="${currentDataUrl}" width="${w}" height="${h}"/></svg>`;
-      const blob = new Blob([svg], { type: 'image/svg+xml' });
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement('a');
-      a.href     = url;
-      a.download = baseName() + '.svg';
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      done('svg');
-    };
-    img.onerror = () => { setBusy(false); showStatus('error','⚠️ Conversion failed.'); };
-    img.src = currentDataUrl;
-  }
-
-  /* ── HELPERS ── */
-  function triggerDownload(dataUrl, fmt) {
-    const b64   = dataUrl.split(',')[1];
-    const raw   = atob(b64);
+  function dataURLtoBlob(dataUrl, mime) {
+    const b64 = dataUrl.split(',')[1];
+    const raw = atob(b64);
     const bytes = new Uint8Array(raw.length);
     for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
-    const blob  = new Blob([bytes], { type: MIME[fmt] });
-    const url   = URL.createObjectURL(blob);
-    const a     = document.createElement('a');
-    a.href      = url;
-    a.download  = baseName() + '.' + fmt;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return new Blob([bytes], { type: mime });
   }
 
-  function baseName() {
-    return (currentFile?.name || 'image').replace(/\.[^/.]+$/, '');
+  function uniqueName(name, usedSet) {
+    if (!usedSet.has(name)) { usedSet.add(name); return name; }
+    const dot = name.lastIndexOf('.');
+    const base = dot > -1 ? name.slice(0, dot) : name;
+    const ext = dot > -1 ? name.slice(dot) : '';
+    let n = 2, candidate;
+    do { candidate = `${base} (${n})${ext}`; n++; } while (usedSet.has(candidate));
+    usedSet.add(candidate);
+    return candidate;
   }
 
-  function done(fmt) {
-    setBusy(false);
-    showStatus('success', `✅ Converted to ${fmt.toUpperCase()} and downloaded successfully!`);
-  }
-
+  /* ── BUSY / PROGRESS / STATUS ── */
   function setBusy(on) {
-    convertBtn.disabled   = on;
-    spinner.style.display = on ? 'block' : 'none';
+    convertBtn.disabled = on;
+    clearAllBtn.disabled = on;
+    spinner.style.display = on ? 'inline-block' : 'none';
     if (on) {
       btnLabel.textContent = 'Converting…';
     } else {
-      const checked = document.querySelector('input[name="fmt"]:checked');
-      btnLabel.textContent = checked
-        ? `Convert to ${checked.value.toUpperCase()} & Download`
-        : 'Choose a format above';
+      refreshConvertLabel();
     }
   }
 
+  function setProgress(i, total) {
+    btnLabel.textContent = `Converting ${i} of ${total}…`;
+  }
+
   function showStatus(type, msg) {
-    statusEl.className   = `status ${type}`;
+    statusEl.className = `status ${type}`;
     statusEl.textContent = msg;
     statusEl.style.display = 'block';
   }
