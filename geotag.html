@@ -17,14 +17,14 @@
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
-  
+
   /* HEADER & FOOTER */
   .tool-header { background: var(--white); border-bottom: 1px solid var(--border); padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-  .brand-link { 
-    font-size: 1.1rem; 
-    font-weight: 700; 
-    color: var(--text); 
-    text-decoration: none; 
+  .brand-link {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+    text-decoration: none;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -43,27 +43,10 @@
   .card {
     background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius);
     max-width: 860px; width: 100%; box-shadow: 0 14px 38px var(--shadow);
-    display: grid; grid-template-columns: 1fr 1fr; overflow: hidden;
+    display: grid; grid-template-columns: 1fr 1fr; align-items: start; overflow: hidden;
   }
 
-  /* ── MODE SWITCHER BAR (new) ── */
-  .mode-bar {
-    grid-column: 1 / -1;
-    display: flex;
-    border-bottom: 1.5px solid var(--border);
-    background: var(--primary-soft);
-  }
-  .mode-tab {
-    flex: 1; padding: 11px 16px;
-    background: none; border: none; border-bottom: 2.5px solid transparent;
-    font-family: 'DM Sans', sans-serif; font-size: 0.86rem; font-weight: 600;
-    color: var(--text-muted); cursor: pointer; transition: all 0.18s;
-    display: flex; align-items: center; justify-content: center; gap: 6px;
-  }
-  .mode-tab:hover:not(.active) { color: var(--text); background: rgba(255,255,255,0.55); }
-  .mode-tab.active { color: var(--primary-dark); border-bottom-color: var(--primary); background: var(--white); }
-
-  /* LEFT PANEL — image */
+  /* LEFT PANEL — upload */
   .panel-left {
     padding: 36px 32px; border-right: 1.5px solid var(--border);
     display: flex; flex-direction: column;
@@ -89,12 +72,6 @@
   .drop-label { font-size: 0.9rem; color: var(--text-muted); }
   .drop-label b { color: var(--primary-dark); font-weight: 700; }
   .drop-hint { font-size: 0.75rem; color: var(--text-faint); margin-top: 5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-
-  .preview-box { border-radius: 12px; overflow: hidden; border: 1.5px solid var(--border); margin-bottom: 0; display: none; flex: 1; flex-direction: column; }
-  .preview-box img { width: 100%; flex: 1; object-fit: cover; display: block; min-height: 0; max-height: 260px; }
-  .preview-meta { padding: 10px 14px; background: var(--primary-soft); font-size: 0.78rem; font-weight: 600; color: var(--primary-dark); display: flex; align-items: center; justify-content: space-between; }
-  .remove-btn { background: none; border: none; color: var(--primary); cursor: pointer; font-size: 1rem; transition: color 0.15s; font-weight: 700; }
-  .remove-btn:hover { color: #e00; }
 
   /* coord fields stacked vertically on right */
   .fields { display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; }
@@ -123,73 +100,70 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   canvas { display: none; }
 
-  /* ── BULK MODE STYLES (new) ── */
-  .bulk-drop-zone {
+  /* ── UPLOAD LIST STYLES (works for 1 or many images) ── */
+  .upload-drop-zone {
     flex: none !important;
-    padding: 22px 20px !important;
+    height: 130px !important;
+    padding: 0 20px !important;
     margin-bottom: 12px !important;
+    display: flex !important; flex-direction: column;
+    align-items: center; justify-content: center;
   }
-  .bulk-drop-zone .drop-icon { font-size: 1.7rem; margin-bottom: 6px; }
+  .upload-drop-zone .drop-icon { font-size: 1.7rem; margin-bottom: 6px; }
 
-  .bulk-header-row {
+  .upload-header-row {
     display: flex; align-items: center; justify-content: space-between;
     margin-bottom: 8px;
   }
-  .bulk-count-badge {
+  .upload-count-badge {
     font-size: 0.76rem; font-weight: 700; color: var(--primary-dark);
     background: var(--primary-soft); border: 1px solid var(--primary-light);
     border-radius: 20px; padding: 3px 10px;
   }
-  .bulk-clear-btn {
+  .upload-clear-btn {
     background: none; border: none; font-size: 0.73rem; font-weight: 700;
     color: var(--text-faint); cursor: pointer; transition: color 0.15s;
   }
-  .bulk-clear-btn:hover { color: #e00; }
+  .upload-clear-btn:hover { color: #e00; }
 
-  .bulk-list {
+  .upload-list {
     display: flex; flex-direction: column; gap: 7px;
-    overflow-y: auto; max-height: 268px;
+    overflow-y: auto; height: 268px;
     padding-right: 2px;
   }
-  .bulk-list::-webkit-scrollbar { width: 4px; }
-  .bulk-list::-webkit-scrollbar-thumb { background: var(--primary-light); border-radius: 4px; }
+  .upload-list.is-empty { justify-content: center; }
+  .upload-list::-webkit-scrollbar { width: 4px; }
+  .upload-list::-webkit-scrollbar-thumb { background: var(--primary-light); border-radius: 4px; }
 
-  .bulk-item {
+  .upload-item {
     display: flex; align-items: center; gap: 10px;
     padding: 7px 10px; background: var(--primary-soft);
     border-radius: 10px; border: 1px solid var(--border);
     transition: border-color 0.15s;
   }
-  .bulk-item:hover { border-color: var(--primary-light); }
-  .bulk-item.done { opacity: 0.55; }
+  .upload-item:hover { border-color: var(--primary-light); }
 
-  .bulk-thumb {
-    width: 38px; height: 38px; object-fit: cover;
+  .upload-thumb {
+    width: 42px; height: 42px; object-fit: cover;
     border-radius: 7px; border: 1px solid var(--border); flex-shrink: 0;
     background: var(--border);
   }
-  .bulk-info { flex: 1; min-width: 0; }
-  .bulk-name {
-    font-size: 0.77rem; font-weight: 600; color: var(--text);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;
-  }
-  .bulk-size { font-size: 0.68rem; color: var(--text-faint); font-weight: 500; }
 
-  .bulk-status-dot {
+  .upload-status-dot {
     width: 8px; height: 8px; border-radius: 50%;
     background: var(--border); flex-shrink: 0; transition: background 0.2s;
   }
-  .bulk-status-dot.ok  { background: #22c55e; }
-  .bulk-status-dot.err { background: #ef4444; }
+  .upload-status-dot.ok  { background: #22c55e; }
+  .upload-status-dot.err { background: #ef4444; }
 
-  .bulk-rm {
+  .upload-rm {
     background: none; border: none; color: var(--text-faint);
     cursor: pointer; font-size: 0.82rem; font-weight: 700;
     transition: color 0.15s; flex-shrink: 0; padding: 2px 4px; line-height: 1;
   }
-  .bulk-rm:hover { color: #e00; }
+  .upload-rm:hover { color: #e00; }
 
-  .bulk-empty {
+  .upload-empty {
     text-align: center; padding: 20px 10px;
     font-size: 0.8rem; color: var(--text-faint); font-weight: 500;
   }
@@ -214,50 +188,26 @@
 <main class="section">
   <div class="card">
 
-    <!-- ── MODE SWITCHER (new) ── -->
-    <div class="mode-bar">
-      <button class="mode-tab active" id="tabSingle" onclick="switchMode('single')">🖼️ Single Image</button>
-      <button class="mode-tab" id="tabBulk" onclick="switchMode('bulk')">📦 Bulk Upload</button>
-    </div>
-
-    <!-- ── LEFT: Single Upload & Preview (existing — unchanged) ── -->
-    <div class="panel-left" id="panelSingle">
-      <div class="drop-zone" id="dropZone">
-        <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.webp" />
-        <div class="drop-icon">🖼️</div>
-        <div class="drop-label"><b>Click to upload</b> or drag & drop</div>
-        <div class="drop-hint">JPG · PNG · WebP</div>
-      </div>
-
-      <div class="preview-box" id="previewBox">
-        <img id="previewImg" alt="Preview" />
-        <div class="preview-meta">
-          <span id="previewMeta"></span>
-          <button class="remove-btn" id="removeBtn" title="Remove">✕</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── LEFT: Bulk Upload (new) ── -->
-    <div class="panel-left" id="panelBulk" style="display:none">
-      <div class="drop-zone bulk-drop-zone" id="bulkDropZone">
-        <input type="file" id="bulkFileInput" accept=".jpg,.jpeg,.png,.webp" multiple />
+    <!-- ── LEFT: Upload (1 image → single download, 2+ → ZIP) ── -->
+    <div class="panel-left">
+      <div class="drop-zone upload-drop-zone" id="dropZone">
+        <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.webp" multiple />
         <div class="drop-icon">📂</div>
         <div class="drop-label"><b>Click to upload</b> or drag & drop</div>
         <div class="drop-hint">Up to 20 images · JPG · PNG · WebP</div>
       </div>
 
-      <div class="bulk-header-row" id="bulkHeaderRow" style="display:none">
-        <span class="bulk-count-badge" id="bulkCountBadge">0 images</span>
-        <button class="bulk-clear-btn" onclick="clearAllBulk()">Clear all</button>
+      <div class="upload-header-row" id="headerRow">
+        <span class="upload-count-badge" id="countBadge">0 images</span>
+        <button class="upload-clear-btn" id="clearAllBtn" style="visibility:hidden">Clear all</button>
       </div>
 
-      <div class="bulk-list" id="bulkList">
-        <div class="bulk-empty">No images added yet.<br>Upload up to 20 images above.</div>
+      <div class="upload-list is-empty" id="fileList">
+        <div class="upload-empty">No images added yet.<br>Upload 1 or more images above.</div>
       </div>
     </div>
 
-    <!-- ── RIGHT: Controls (shared — existing unchanged, button label changes by mode) ── -->
+    <!-- ── RIGHT: Controls ── -->
     <div class="panel-right">
       <div class="logo">📍</div>
       <h1>GeoTag Images</h1>
@@ -294,47 +244,29 @@
 
 <script>
   /* ─────────────────────────────────────────
-     EXISTING — Single-mode variables
+     Element refs
   ───────────────────────────────────────── */
-  const dropZone   = document.getElementById('dropZone');
-  const fileInput  = document.getElementById('fileInput');
-  const previewBox = document.getElementById('previewBox');
-  const previewImg = document.getElementById('previewImg');
-  const previewMeta= document.getElementById('previewMeta');
-  const removeBtn  = document.getElementById('removeBtn');
-  const processBtn = document.getElementById('processBtn');
-  const btnLabel   = document.getElementById('btnLabel');
-  const spinner    = document.getElementById('spinner');
-  const statusEl   = document.getElementById('status');
-  const canvas     = document.getElementById('canvas');
-  const ctx        = canvas.getContext('2d');
-  const latInput   = document.getElementById('lat');
-  const lngInput   = document.getElementById('lng');
-  let currentFile = null; let currentDataUrl = null;
+  const dropZone     = document.getElementById('dropZone');
+  const fileInput    = document.getElementById('fileInput');
+  const headerRow     = document.getElementById('headerRow');
+  const countBadge    = document.getElementById('countBadge');
+  const clearAllBtn   = document.getElementById('clearAllBtn');
+  const fileList      = document.getElementById('fileList');
+  const processBtn   = document.getElementById('processBtn');
+  const btnLabel      = document.getElementById('btnLabel');
+  const spinner       = document.getElementById('spinner');
+  const statusEl      = document.getElementById('status');
+  const canvas        = document.getElementById('canvas');
+  const ctx           = canvas.getContext('2d');
+  const latInput      = document.getElementById('lat');
+  const lngInput      = document.getElementById('lng');
+
+  let selectedFiles = [];
+  const MAX_FILES = 20;
 
   /* ─────────────────────────────────────────
-     NEW — Bulk-mode variables
-  ───────────────────────────────────────── */
-  let isBulkMode = false;
-  let bulkFiles  = [];
-  const MAX_BULK = 20;
-
-  const bulkDropZone  = document.getElementById('bulkDropZone');
-  const bulkFileInput = document.getElementById('bulkFileInput');
-  const bulkList      = document.getElementById('bulkList');
-  const bulkHeaderRow = document.getElementById('bulkHeaderRow');
-  const bulkCountBadge= document.getElementById('bulkCountBadge');
-
-  /* ─────────────────────────────────────────
-     EXISTING — Single-mode events
-  ───────────────────────────────────────── */
-  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('over'); });
-  ['dragleave','dragend'].forEach(ev => dropZone.addEventListener(ev, () => dropZone.classList.remove('over')));
-  dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('over'); const f = e.dataTransfer.files[0]; if (f) handleFile(f); });
-  fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
-
-  /* ─────────────────────────────────────────
-     EXISTING — GPS helper functions
+     GPS helper functions (used to detect & prefill
+     existing GeoTag when exactly one image is staged)
   ───────────────────────────────────────── */
   function dmsToDecimal(dms, ref) {
     if (!dms || dms.length < 3) return null;
@@ -361,45 +293,26 @@
     }
   }
 
-  /* ─────────────────────────────────────────
-     EXISTING — Single-mode file handling
-  ───────────────────────────────────────── */
-  function handleFile(file) {
-    const allowed = ['image/jpeg','image/png','image/webp'];
-    if (!allowed.includes(file.type)) return showStatus('error', '⚠️ Only JPG, PNG, or WebP images are supported.');
-    if (file.size > 30 * 1024 * 1024) return showStatus('error', '⚠️ File too large. Please use an image under 30 MB.');
-    clearState(); currentFile = file;
+  function maybeDetectGPS() {
+    // Only worth checking when there's a single staged image and the
+    // coordinate fields are still empty (so we never clobber user input).
+    if (selectedFiles.length !== 1) return;
+    if (latInput.value !== '' || lngInput.value !== '') return;
+    const file = selectedFiles[0];
     const reader = new FileReader();
     reader.onload = e => {
-      currentDataUrl = e.target.result;
-      previewImg.src = currentDataUrl;
-      previewBox.style.display = 'flex';
-      previewMeta.textContent = `${file.name}  ·  ${(file.size/1024).toFixed(1)} KB`;
-      processBtn.disabled = false;
-
-      const existing = readExistingGPS(currentDataUrl);
+      const existing = readExistingGPS(e.target.result);
       if (existing) {
         latInput.value = existing.lat;
         lngInput.value = existing.lng;
         showStatus('info', `📍 GeoTag found in this image!\nLat: ${existing.lat}°  Lng: ${existing.lng}°\n\nYou can overwrite it with new coordinates below.`);
-      } else {
-        hideStatus();
       }
     };
-    reader.onerror = () => showStatus('error', '⚠️ Could not read the file. Please try again.');
     reader.readAsDataURL(file);
   }
 
-  removeBtn.addEventListener('click', () => { clearState(); hideStatus(); });
-  function clearState() {
-    currentFile = null; currentDataUrl = null;
-    previewImg.src = ''; previewBox.style.display = 'none';
-    fileInput.value = ''; processBtn.disabled = true;
-    latInput.value = ''; lngInput.value = '';
-  }
-
   /* ─────────────────────────────────────────
-     EXISTING — Coord helpers
+     Coord helpers
   ───────────────────────────────────────── */
   function toGPSCoord(val) {
     const abs = Math.abs(val);
@@ -416,223 +329,7 @@
   }
 
   /* ─────────────────────────────────────────
-     EXISTING — Process button click
-     Updated: routes to single or bulk handler
-  ───────────────────────────────────────── */
-  processBtn.addEventListener('click', () => {
-    if (isBulkMode) {
-      processBulk();
-    } else {
-      processSingle();
-    }
-  });
-
-  /* ─────────────────────────────────────────
-     EXISTING — Single-mode process 
-  ───────────────────────────────────────── */
-  function processSingle() {
-    const lat = parseFloat(latInput.value);
-    const lng = parseFloat(lngInput.value);
-    if (!currentDataUrl) return showStatus('error','⚠️ Please upload an image first.');
-    if (isNaN(lat)||lat<-90||lat>90) return showStatus('error','⚠️ Latitude must be between –90 and 90.');
-    if (isNaN(lng)||lng<-180||lng>180) return showStatus('error','⚠️ Longitude must be between –180 and 180.');
-    setBusy(true);
-
-    const img = new Image();
-    img.onload = () => {
-      try {
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0);
-        const jpegDataUrl = canvas.toDataURL('image/jpeg', 0.95);
-
-        const exifObj = {
-          "0th": {},
-          "Exif": {},
-          "GPS": {
-            1: lat >= 0 ? 'N' : 'S',
-            2: toGPSCoord(lat),
-            3: lng >= 0 ? 'E' : 'W',
-            4: toGPSCoord(lng),
-            5: [0, 1],
-            6: [0, 1]
-          },
-          "1st": {},
-          "thumbnail": null
-        };
-
-        const exifBytes = piexif.dump(exifObj);
-        const taggedUrl = piexif.insert(exifBytes, jpegDataUrl);
-
-        const b64 = taggedUrl.split(',')[1];
-        const raw = atob(b64);
-        const bytes = new Uint8Array(raw.length);
-        for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
-        const blob = new Blob([bytes], { type: 'image/jpeg' });
-        const blobUrl = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        const baseName = currentFile ? currentFile.name.replace(/\.[^/.]+$/,'') : 'image';
-        a.href = blobUrl;
-        a.download = `${baseName}.jpg`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-
-        setTimeout(() => {
-          URL.revokeObjectURL(blobUrl);
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          clearState();
-          setBusy(false);
-          showStatus('success', `✅ GeoTag embedded & image downloaded!\n📌 ${fmtCoord(lat, lng)}\n\nAll image data has been cleared from your browser.`);
-        }, 500);
-
-      } catch (err) {
-        console.error('GeoTag error:', err);
-        setBusy(false);
-        showStatus('error', '⚠️ Failed to embed GeoTag: ' + err.message);
-      }
-    };
-    img.onerror = () => { setBusy(false); showStatus('error', '⚠️ Could not load the image. Please try again.'); };
-    img.src = currentDataUrl;
-  }
-
-  /* ─────────────────────────────────────────
-     EXISTING — UI helpers
-     setBusy updated to be mode-aware for label
-  ───────────────────────────────────────── */
-  function setBusy(on) {
-    processBtn.disabled = on;
-    spinner.style.display = on ? 'block' : 'none';
-    btnLabel.textContent = on ? 'Processing…' : (isBulkMode ? 'GeoTag All & Download ZIP' : 'Add GeoTag & Download');
-  }
-  function showStatus(type, msg) { statusEl.className = `status ${type}`; statusEl.textContent = msg; statusEl.style.display = 'block'; }
-  function hideStatus() { statusEl.style.display = 'none'; }
-
-  /* ─────────────────────────────────────────
-     NEW — Mode switching
-  ───────────────────────────────────────── */
-  function switchMode(mode) {
-    isBulkMode = mode === 'bulk';
-    document.getElementById('panelSingle').style.display = isBulkMode ? 'none' : 'flex';
-    document.getElementById('panelBulk').style.display   = isBulkMode ? 'flex' : 'none';
-    document.getElementById('tabSingle').classList.toggle('active', !isBulkMode);
-    document.getElementById('tabBulk').classList.toggle('active', isBulkMode);
-    btnLabel.textContent = isBulkMode ? 'GeoTag All & Download ZIP' : 'Add GeoTag & Download';
-    hideStatus();
-    if (isBulkMode) {
-      processBtn.disabled = bulkFiles.length === 0;
-    } else {
-      processBtn.disabled = currentFile === null;
-    }
-  }
-
-  /* ─────────────────────────────────────────
-     NEW — Bulk file events
-  ───────────────────────────────────────── */
-  bulkDropZone.addEventListener('dragover', e => { e.preventDefault(); bulkDropZone.classList.add('over'); });
-  ['dragleave','dragend'].forEach(ev => bulkDropZone.addEventListener(ev, () => bulkDropZone.classList.remove('over')));
-  bulkDropZone.addEventListener('drop', e => {
-    e.preventDefault(); bulkDropZone.classList.remove('over');
-    addBulkFiles(e.dataTransfer.files);
-  });
-  bulkFileInput.addEventListener('change', () => {
-    if (bulkFileInput.files.length) addBulkFiles(bulkFileInput.files);
-    bulkFileInput.value = ''; // reset so same files can be re-added after remove
-  });
-
-  /* ─────────────────────────────────────────
-     NEW — Bulk file management
-  ───────────────────────────────────────── */
-  function addBulkFiles(fileList) {
-    const allowed = ['image/jpeg','image/png','image/webp'];
-    let skipped = 0;
-    for (const file of fileList) {
-      if (bulkFiles.length >= MAX_BULK) { skipped++; continue; }
-      if (!allowed.includes(file.type)) { skipped++; continue; }
-      if (file.size > 30 * 1024 * 1024) { skipped++; continue; }
-      // avoid duplicates by name+size
-      const exists = bulkFiles.some(f => f.name === file.name && f.size === file.size);
-      if (exists) { skipped++; continue; }
-      bulkFiles.push(file);
-    }
-    renderBulkList();
-    if (skipped > 0 && bulkFiles.length >= MAX_BULK) {
-      showStatus('info', `ℹ️ Max ${MAX_BULK} images reached. Some files were skipped.`);
-    }
-  }
-
-  function removeBulkFile(index) {
-    bulkFiles.splice(index, 1);
-    renderBulkList();
-    if (isBulkMode) processBtn.disabled = bulkFiles.length === 0;
-    hideStatus();
-  }
-
-  function clearAllBulk() {
-    bulkFiles = [];
-    renderBulkList();
-    processBtn.disabled = true;
-    hideStatus();
-  }
-
-  function renderBulkList() {
-    bulkList.innerHTML = '';
-
-    if (bulkFiles.length === 0) {
-      bulkHeaderRow.style.display = 'none';
-      bulkList.innerHTML = '<div class="bulk-empty">No images added yet.<br>Upload up to 20 images above.</div>';
-      processBtn.disabled = true;
-      return;
-    }
-
-    bulkHeaderRow.style.display = 'flex';
-    bulkCountBadge.textContent = `${bulkFiles.length} / ${MAX_BULK} image${bulkFiles.length !== 1 ? 's' : ''}`;
-    if (isBulkMode) processBtn.disabled = false;
-
-    bulkFiles.forEach((file, i) => {
-      const item = document.createElement('div');
-      item.className = 'bulk-item';
-      item.id = `bulk-item-${i}`;
-
-      const thumb = document.createElement('img');
-      thumb.className = 'bulk-thumb';
-      thumb.alt = file.name;
-      const reader = new FileReader();
-      reader.onload = e => { thumb.src = e.target.result; };
-      reader.readAsDataURL(file);
-
-      const info = document.createElement('div');
-      info.className = 'bulk-info';
-      const nameEl = document.createElement('span');
-      nameEl.className = 'bulk-name';
-      nameEl.textContent = file.name;
-      const sizeEl = document.createElement('span');
-      sizeEl.className = 'bulk-size';
-      sizeEl.textContent = (file.size / 1024).toFixed(1) + ' KB';
-      info.appendChild(nameEl);
-      info.appendChild(sizeEl);
-
-      const dot = document.createElement('div');
-      dot.className = 'bulk-status-dot';
-      dot.id = `bulk-dot-${i}`;
-
-      const rm = document.createElement('button');
-      rm.className = 'bulk-rm';
-      rm.title = 'Remove';
-      rm.textContent = '✕';
-      rm.onclick = () => removeBulkFile(i);
-
-      item.appendChild(thumb);
-      item.appendChild(info);
-      item.appendChild(dot);
-      item.appendChild(rm);
-      bulkList.appendChild(item);
-    });
-  }
-
-  /* ─────────────────────────────────────────
-     NEW — Geotag a single File → Uint8Array (Promise)
+     Geotag a single File → Uint8Array (Promise)
   ───────────────────────────────────────── */
   function geotagFileToBytes(file, lat, lng) {
     return new Promise((resolve, reject) => {
@@ -678,66 +375,216 @@
   }
 
   /* ─────────────────────────────────────────
-     NEW — Bulk process handler
+     File list management (covers 1 image and many)
   ───────────────────────────────────────── */
-  async function processBulk() {
+  function addFiles(incoming) {
+    const allowed = ['image/jpeg','image/png','image/webp'];
+    let skipped = 0;
+    for (const file of incoming) {
+      if (selectedFiles.length >= MAX_FILES) { skipped++; continue; }
+      if (!allowed.includes(file.type)) { skipped++; continue; }
+      if (file.size > 30 * 1024 * 1024) { skipped++; continue; }
+      const exists = selectedFiles.some(f => f.name === file.name && f.size === file.size);
+      if (exists) { skipped++; continue; }
+      selectedFiles.push(file);
+    }
+    renderList();
+    maybeDetectGPS();
+    if (skipped > 0 && selectedFiles.length >= MAX_FILES) {
+      showStatus('info', `ℹ️ Max ${MAX_FILES} images reached. Some files were skipped.`);
+    }
+  }
+
+  function removeFile(index) {
+    selectedFiles.splice(index, 1);
+    renderList();
+    hideStatus();
+  }
+
+  function clearAllFiles() {
+    selectedFiles = [];
+    renderList();
+    hideStatus();
+  }
+
+  function renderList() {
+    fileList.innerHTML = '';
+
+    if (selectedFiles.length === 0) {
+      countBadge.textContent = '0 images';
+      clearAllBtn.style.visibility = 'hidden';
+      fileList.classList.add('is-empty');
+      fileList.innerHTML = '<div class="upload-empty">No images added yet.<br>Upload 1 or more images above.</div>';
+      processBtn.disabled = true;
+      btnLabel.textContent = 'Add GeoTag & Download';
+      return;
+    }
+
+    clearAllBtn.style.visibility = 'visible';
+    fileList.classList.remove('is-empty');
+    countBadge.textContent = `${selectedFiles.length} / ${MAX_FILES} image${selectedFiles.length !== 1 ? 's' : ''}`;
+    processBtn.disabled = false;
+    btnLabel.textContent = selectedFiles.length > 1 ? 'GeoTag All & Download ZIP' : 'Add GeoTag & Download';
+
+    selectedFiles.forEach((file, i) => {
+      const item = document.createElement('div');
+      item.className = 'upload-item';
+      item.id = `file-item-${i}`;
+
+      const thumb = document.createElement('img');
+      thumb.className = 'upload-thumb';
+      thumb.alt = file.name;
+      thumb.title = file.name;
+      const reader = new FileReader();
+      reader.onload = e => { thumb.src = e.target.result; };
+      reader.readAsDataURL(file);
+
+      const spacer = document.createElement('div');
+      spacer.style.flex = '1';
+
+      const dot = document.createElement('div');
+      dot.className = 'upload-status-dot';
+      dot.id = `file-dot-${i}`;
+
+      const rm = document.createElement('button');
+      rm.className = 'upload-rm';
+      rm.title = 'Remove';
+      rm.textContent = '✕';
+      rm.onclick = () => removeFile(i);
+
+      item.appendChild(thumb);
+      item.appendChild(spacer);
+      item.appendChild(dot);
+      item.appendChild(rm);
+      fileList.appendChild(item);
+    });
+  }
+
+  /* ─────────────────────────────────────────
+     Full reset — wipes staged files AND coordinates,
+     Called automatically right after a successful download
+  ───────────────────────────────────────── */
+  function resetAll() {
+    selectedFiles = [];
+    latInput.value = '';
+    lngInput.value = '';
+    fileInput.value = '';
+    renderList();
+  }
+
+  /* ─────────────────────────────────────────
+     Process: 1 image → direct .jpg download
+              2+ images → ZIP download
+  ───────────────────────────────────────── */
+  async function processFiles() {
     const lat = parseFloat(latInput.value);
     const lng = parseFloat(lngInput.value);
-    if (bulkFiles.length === 0) return showStatus('error','⚠️ Please upload at least one image.');
-    if (isNaN(lat)||lat<-90||lat>90)   return showStatus('error','⚠️ Latitude must be between –90 and 90.');
-    if (isNaN(lng)||lng<-180||lng>180) return showStatus('error','⚠️ Longitude must be between –180 and 180.');
+    if (selectedFiles.length === 0) return showStatus('error', '⚠️ Please upload at least one image.');
+    if (isNaN(lat) || lat < -90 || lat > 90) return showStatus('error', '⚠️ Latitude must be between –90 and 90.');
+    if (isNaN(lng) || lng < -180 || lng > 180) return showStatus('error', '⚠️ Longitude must be between –180 and 180.');
 
     setBusy(true);
-    const total = bulkFiles.length;
+
+    if (selectedFiles.length === 1) {
+      const file = selectedFiles[0];
+      try {
+        showStatus('info', '⏳ Embedding GeoTag…');
+        const bytes = await geotagFileToBytes(file, lat, lng);
+        const baseName = file.name.replace(/\.[^/.]+$/, '');
+        const blob = new Blob([bytes], { type: 'image/jpeg' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${baseName}.jpg`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1500);
+
+        resetAll();
+        setBusy(false);
+        showStatus('success', `✅ GeoTag embedded & image downloaded!\n📌 ${fmtCoord(lat, lng)}\n\nAll image data has been cleared from your browser.`);
+      } catch (err) {
+        console.error('GeoTag error:', err);
+        setBusy(false);
+        showStatus('error', '⚠️ Failed to embed GeoTag: ' + err.message);
+      }
+      return;
+    }
+
+    // 2+ images → build & download a ZIP
+    const total = selectedFiles.length;
     let processed = 0, failed = 0;
     const zip = new JSZip();
 
-    for (let i = 0; i < bulkFiles.length; i++) {
-      const file = bulkFiles[i];
-      const dot  = document.getElementById(`bulk-dot-${i}`);
+    for (let i = 0; i < selectedFiles.length; i++) {
+      const file = selectedFiles[i];
+      const dot = document.getElementById(`file-dot-${i}`);
       showStatus('info', `⏳ Processing image ${i + 1} of ${total}…`);
       try {
-        const bytes    = await geotagFileToBytes(file, lat, lng);
-        const baseName = file.name.replace(/\.[^/.]+$/,'');
+        const bytes = await geotagFileToBytes(file, lat, lng);
+        const baseName = file.name.replace(/\.[^/.]+$/, '');
         zip.file(`${baseName}.jpg`, bytes);
         if (dot) dot.classList.add('ok');
         processed++;
-      } catch(err) {
-        console.error('Bulk geotag failed for', file.name, err);
+      } catch (err) {
+        console.error('GeoTag failed for', file.name, err);
         if (dot) dot.classList.add('err');
         failed++;
       }
     }
 
-    // Generate & trigger ZIP download
     try {
-      showStatus('info', `📦 Creating ZIP file…`);
+      showStatus('info', '📦 Creating ZIP file…');
       const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 3 } });
       const url = URL.createObjectURL(zipBlob);
-      const a   = document.createElement('a');
-      a.href     = url;
-      a.download = 'geotagged_images.zip';
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'geotaggedimages.zip';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       setTimeout(() => URL.revokeObjectURL(url), 1500);
 
-      setBusy(false);
       const failNote = failed > 0 ? `\n⚠️ ${failed} image${failed !== 1 ? 's' : ''} could not be processed.` : '';
-      showStatus('success',
-        `✅ ${processed} image${processed !== 1 ? 's' : ''} geotagged & downloaded as ZIP!\n📌 ${fmtCoord(lat, lng)}${failNote}\n\nAll image data has been cleared from your browser.`
-      );
-
-      // Reset bulk list
-      bulkFiles = [];
-      renderBulkList();
-
-    } catch(zipErr) {
+      resetAll();
+      setBusy(false);
+      showStatus('success', `✅ ${processed} image${processed !== 1 ? 's' : ''} geotagged & downloaded as ZIP!\n📌 ${fmtCoord(lat, lng)}${failNote}\n\nAll image data has been cleared from your browser.`);
+    } catch (zipErr) {
       console.error('ZIP error:', zipErr);
       setBusy(false);
       showStatus('error', '⚠️ Failed to create ZIP file: ' + zipErr.message);
     }
   }
+
+  /* ─────────────────────────────────────────
+     UI helpers
+  ───────────────────────────────────────── */
+  function setBusy(on) {
+    processBtn.disabled = on;
+    spinner.style.display = on ? 'block' : 'none';
+    btnLabel.textContent = on ? 'Processing…' : (selectedFiles.length > 1 ? 'GeoTag All & Download ZIP' : 'Add GeoTag & Download');
+  }
+  function showStatus(type, msg) { statusEl.className = `status ${type}`; statusEl.textContent = msg; statusEl.style.display = 'block'; }
+  function hideStatus() { statusEl.style.display = 'none'; }
+
+  /* ─────────────────────────────────────────
+     Wire up events
+  ───────────────────────────────────────── */
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('over'); });
+  ['dragleave','dragend'].forEach(ev => dropZone.addEventListener(ev, () => dropZone.classList.remove('over')));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault(); dropZone.classList.remove('over');
+    addFiles(e.dataTransfer.files);
+  });
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) addFiles(fileInput.files);
+    fileInput.value = ''; // reset so same files can be re-added after remove
+  });
+  clearAllBtn.addEventListener('click', clearAllFiles);
+  processBtn.addEventListener('click', processFiles);
+
+  renderList();
 </script>
 </body>
 </html>
